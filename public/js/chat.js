@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ${role === 'ai' ? `
           <div class="flex items-center justify-between gap-1 text-sky-600 dark:text-sky-400 font-bold mb-1.5 border-b border-slate-200 dark:border-slate-800/80 pb-1">
             <span class="flex items-center gap-1.5"><i data-lucide="bot" class="w-3.5 h-3.5"></i> MediGo AI</span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-300 font-mono">${escapeHtml(data?.source || 'Gemini 3.8')}</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-300 font-mono">${escapeHtml(data?.source || 'Gemini AI')}</span>
           </div>
         ` : ''}
         <div class="leading-relaxed">${formattedText}</div>
