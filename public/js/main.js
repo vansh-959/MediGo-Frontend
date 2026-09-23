@@ -7,6 +7,7 @@ let appState = {
   hospitals: [],
   filteredHospitals: [],
   selectedFilter: 'all',
+  selectedBudgetCaps: new Set(),
   sortBy: 'rank',
   currentQuery: '',
   userCoords: null,
@@ -75,9 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
   initEventListeners();
   checkAuthSession();
+  checkLoginToast();
+  initReviewsModal();
 
   // Run a default discovery search on start
-  performDiseaseSearch('kidney treatment hospitals in chandigarh under 2 lakh', false);
+  if (navigator.geolocation) triggerGeolocation();
+  else performDiseaseSearch('kidney treatment hospitals near me', false);
 });
 
 // =========================================================================
@@ -161,6 +165,27 @@ function initEventListeners() {
       applyFiltersAndSort();
     });
   });
+
+  // Budget Cap Checkboxes
+  document.querySelectorAll('.budget-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        appState.selectedBudgetCaps.add(cb.value);
+      } else {
+        appState.selectedBudgetCaps.delete(cb.value);
+      }
+      applyFiltersAndSort();
+    });
+  });
+
+  const clearBudgetBtn = document.getElementById('clear-budget-checks');
+  if (clearBudgetBtn) {
+    clearBudgetBtn.addEventListener('click', () => {
+      document.querySelectorAll('.budget-checkbox').forEach(cb => cb.checked = false);
+      appState.selectedBudgetCaps.clear();
+      applyFiltersAndSort();
+    });
+  }
 
   // Sort dropdown
   const sortSelect = document.getElementById('sort-select');
@@ -455,7 +480,9 @@ function triggerGeolocation() {
     (err) => {
       console.warn('Geolocation denied:', err.message);
       if (locateBtn) locateBtn.classList.remove('animate-spin');
-      if (locText) locText.textContent = 'GPS permission denied. Using regional centers.';
+      if (locText) locText.textContent = 'GPS unavailable. Enter a city or region to search nearby hospitals.';
+      const input = document.getElementById('disease-search-input');
+      performDiseaseSearch(input?.value.trim() || 'kidney treatment hospitals near me', false);
     },
     { enableHighAccuracy: true, timeout: 8000 }
   );
@@ -569,7 +596,6 @@ function renderAIIntentSection(intent, locationInfo) {
   setVal('slot-disease', intent.disease || 'General Medical Problem');
   setVal('slot-specialty', intent.specialty ? `${intent.specialty} Department` : 'General Medicine');
   setVal('slot-location', locationInfo?.name || intent.location || 'Local Region');
-  setVal('slot-budget', intent.budgetMax ? `≤ ₹${intent.budgetMax.toLocaleString('en-IN')}` : 'No Limit / PM-JAY');
   setVal('intent-explainability-text', intent.explainability || 'Matched hospitals based on medical department and proximity.');
   setVal('ai-model-tag', intent.modelUsed || 'Gemini Clinical AI');
 
@@ -583,7 +609,7 @@ function renderAIIntentSection(intent, locationInfo) {
       urgencyText.textContent = '🚨 Emergency (Immediate ER / 108)';
     } else if (intent.urgency === 'Urgent') {
       urgencyBadge.classList.add('bg-amber-500/10', 'border', 'border-amber-500/30', 'text-amber-600', 'dark:text-amber-400');
-      urgencyText.textContent = '⚠️ Urgent (Consult within 24h)';
+      urgencyText.textContent = '⚠️ Urgent (Consult within 15 min)';
     } else {
       urgencyBadge.classList.add('bg-emerald-500/10', 'border', 'border-emerald-500/30', 'text-emerald-600', 'dark:text-emerald-400');
       urgencyText.textContent = 'ℹ️ Routine Outpatient (OPD)';
@@ -611,9 +637,26 @@ function applyFiltersAndSort() {
   } else if (appState.selectedFilter === 'icu') {
     list = list.filter(h => (h.icuAvailable || 0) >= 10);
   } else if (appState.selectedFilter === 'budget') {
-    list = list.filter(h => h.estimatedTreatmentCost.min <= 50000);
+    list = list.filter(h => (h.estimatedTreatmentCost?.min || h.avgConsultationCost || 0) <= 50000);
   } else if (appState.selectedFilter === 'rated') {
     list = list.filter(h => (h.rating || 0) >= 4.8);
+  }
+
+  // Apply Budget Cap Checkboxes
+  if (appState.selectedBudgetCaps && appState.selectedBudgetCaps.size > 0) {
+    list = list.filter(h => {
+      const minCost = h.estimatedTreatmentCost?.min ?? h.avgConsultationCost ?? 0;
+      const maxCost = h.estimatedTreatmentCost?.max ?? minCost;
+      const consultCost = h.avgConsultationCost ?? 0;
+
+      for (const cap of appState.selectedBudgetCaps) {
+        const [low, high] = cap.split('-').map(Number);
+        if ((minCost <= high && maxCost >= low) || (consultCost >= low && consultCost <= high)) {
+          return true;
+        }
+      }
+      return false;
+    });
   }
 
   // Apply Sort
@@ -739,19 +782,24 @@ function renderHospitalCards(hospitals) {
         </div>
 
         <!-- Action Buttons Row (Touch Optimized for Mobile) -->
-        <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-200 dark:border-slate-800">
-          <a href="tel:${escapeHtml(h.phone)}" class="py-2.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold text-[11px] sm:text-xs flex items-center justify-center gap-1 shadow-sm transition-all">
-            <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+        <div class="grid grid-cols-4 gap-1 pt-2 border-t border-slate-200 dark:border-slate-800">
+          <a href="tel:${escapeHtml(h.phone)}" class="py-2.5 px-1 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold text-[10px] sm:text-xs flex items-center justify-center gap-1 shadow-sm transition-all">
+            <i data-lucide="phone" class="w-3 h-3"></i>
             <span>Call</span>
           </a>
 
-          <a href="${h.mapUrl}" target="_blank" rel="noopener" class="py-2.5 px-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-extrabold text-[11px] sm:text-xs flex items-center justify-center gap-1 shadow-sm transition-all">
-            <i data-lucide="map" class="w-3.5 h-3.5"></i>
+          <a href="${h.mapUrl}" target="_blank" rel="noopener" class="py-2.5 px-1 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-extrabold text-[10px] sm:text-xs flex items-center justify-center gap-1 shadow-sm transition-all">
+            <i data-lucide="map" class="w-3 h-3"></i>
             <span>Map</span>
           </a>
 
-          <button type="button" onclick="toggleCompareHospital('${escapeHtml(h.id)}')" class="py-2.5 px-2 rounded-xl ${isCompared ? 'bg-indigo-600 text-white font-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold border border-slate-200 dark:border-slate-700'} text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm">
-            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+          <button type="button" onclick="openReviewModal('${escapeHtml(h.id)}', '${escapeHtml(h.name)}')" class="py-2.5 px-1 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30 text-[10px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm">
+            <i data-lucide="star" class="w-3 h-3"></i>
+            <span>Review</span>
+          </button>
+
+          <button type="button" onclick="toggleCompareHospital('${escapeHtml(h.id)}')" class="py-2.5 px-1 rounded-xl ${isCompared ? 'bg-indigo-600 text-white font-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold border border-slate-200 dark:border-slate-700'} text-[10px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm">
+            <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
             <span>${isCompared ? 'Added' : 'Compare'}</span>
           </button>
         </div>
@@ -1056,5 +1104,182 @@ function checkAuthSession() {
   if (token && accountText) {
     accountText.textContent = 'My Profile';
     if (accountLink) accountLink.href = 'profile.html';
+  }
+}
+
+// =========================================================================
+// TOAST NOTIFICATION ENGINE
+// =========================================================================
+
+function showNotificationToast(title, message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `p-3.5 rounded-2xl border shadow-2xl flex items-start gap-3 backdrop-blur-xl transition-all duration-300 pointer-events-auto transform translate-y-2 opacity-0 ${
+    type === 'success'
+      ? 'bg-slate-900/95 border-emerald-500/50 text-slate-100'
+      : 'bg-slate-900/95 border-rose-500/50 text-slate-100'
+  }`;
+
+  toast.innerHTML = `
+    <div class="w-7 h-7 rounded-xl ${type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'} flex items-center justify-center shrink-0">
+      <i data-lucide="${type === 'success' ? 'sparkles' : 'alert-circle'}" class="w-4 h-4"></i>
+    </div>
+    <div class="flex-1 min-w-0">
+      <h4 class="text-xs font-black text-white leading-snug">${escapeHtml(title)}</h4>
+      <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">${escapeHtml(message)}</p>
+    </div>
+    <button class="p-1 text-slate-400 hover:text-white text-xs" onclick="this.parentElement.remove()">✕</button>
+  `;
+
+  container.appendChild(toast);
+  lucide.createIcons();
+
+  requestAnimationFrame(() => {
+    toast.classList.remove('translate-y-2', 'opacity-0');
+  });
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => toast.remove(), 350);
+  }, 4800);
+}
+
+function checkLoginToast() {
+  const loginToastData = localStorage.getItem('medigo_login_toast');
+  if (loginToastData) {
+    localStorage.removeItem('medigo_login_toast');
+    try {
+      const info = JSON.parse(loginToastData);
+      showNotificationToast(
+        info.mode === 'signup' ? '🎉 Welcome to MediGo!' : '👋 Welcome Back to MediGo!',
+        `Logged in successfully as ${info.name || 'Citizen'}. You can now save preferences and review hospitals.`
+      );
+    } catch (e) {}
+  }
+}
+
+// =========================================================================
+// REVIEWS SYSTEM & MODAL
+// =========================================================================
+
+function initReviewsModal() {
+  const closeBtn = document.getElementById('close-reviews-modal-btn');
+  const modal = document.getElementById('reviews-modal');
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', closeReviewModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeReviewModal();
+    });
+  }
+
+  const reviewForm = document.getElementById('write-review-form');
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const hospitalId = document.getElementById('review-hospital-id').value;
+      const hospitalName = document.getElementById('review-hospital-name').value;
+      const userName = document.getElementById('review-user-name').value.trim() || 'Verified Citizen';
+      const rating = parseInt(document.getElementById('review-rating-val').value, 10) || 5;
+      const treatment = document.getElementById('review-treatment').value.trim() || 'General Medicine';
+      const comment = document.getElementById('review-comment').value.trim();
+
+      const submitBtn = document.getElementById('submit-review-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Submitting...`;
+        lucide.createIcons();
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/reviews`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hospitalId,
+            hospitalName,
+            userName,
+            rating,
+            treatment,
+            comment
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showNotificationToast('⭐ Review Submitted!', `Thank you ${userName}! Your review for ${hospitalName} has been published.`);
+          document.getElementById('review-comment').value = '';
+          loadHospitalReviews(hospitalId);
+          // Also update hospital in appState
+          const hosp = appState.hospitals.find(h => h.id === hospitalId);
+          if (hosp) {
+            hosp.reviewsCount = data.reviewsCount || (hosp.reviewsCount + 1);
+            if (data.updatedRating) hosp.rating = data.updatedRating;
+            applyFiltersAndSort();
+          }
+        } else {
+          alert(data.error || 'Failed to submit review.');
+        }
+      } catch (err) {
+        alert('Network error while posting review.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5"></i> Submit Review`;
+          lucide.createIcons();
+        }
+      }
+    });
+  }
+}
+
+window.openReviewModal = function(hospitalId, hospitalName) {
+  const modal = document.getElementById('reviews-modal');
+  if (!modal) return;
+
+  document.getElementById('modal-hospital-name').textContent = hospitalName;
+  document.getElementById('review-hospital-id').value = hospitalId;
+  document.getElementById('review-hospital-name').value = hospitalName;
+
+  modal.classList.remove('hidden');
+  loadHospitalReviews(hospitalId);
+  lucide.createIcons();
+};
+
+window.closeReviewModal = function() {
+  const modal = document.getElementById('reviews-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+async function loadHospitalReviews(hospitalId) {
+  const listContainer = document.getElementById('modal-reviews-list');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = `<div class="text-center py-4 text-xs text-slate-400">Loading verified reviews...</div>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/reviews?hospitalId=${encodeURIComponent(hospitalId)}`);
+    const data = await res.json();
+
+    if (data.success && Array.isArray(data.reviews)) {
+      if (data.reviews.length === 0) {
+        listContainer.innerHTML = `<div class="p-3 text-center text-xs text-slate-400 theme-card rounded-xl border">No reviews yet for this hospital. Be the first to share your experience!</div>`;
+        return;
+      }
+
+      listContainer.innerHTML = data.reviews.map(r => `
+        <div class="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-900 dark:text-white">${escapeHtml(r.userName)}</span>
+            <span class="text-amber-500 font-bold">${'★'.repeat(r.rating)} <span class="text-slate-400 text-[10px]">(${r.rating}/5)</span></span>
+          </div>
+          <div class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">${escapeHtml(r.treatment || 'Clinical Consultation')} • ${r.date || 'Recent'}</div>
+          <p class="text-xs text-slate-600 dark:text-slate-300 italic pt-0.5">"${escapeHtml(r.comment)}"</p>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    listContainer.innerHTML = `<div class="p-3 text-center text-xs text-rose-400">Failed to load reviews.</div>`;
   }
 }

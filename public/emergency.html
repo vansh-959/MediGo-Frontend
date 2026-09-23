@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MediGo Emergency | 24/7 Trauma & Pre-Arrival Hospital Alert</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#f0f9ff', 500: '#0ea5e9', 600: '#0284c7' }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="theme-bg font-sans min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-200 pb-16">
+
+  <!-- Ambient Light Accents -->
+  <div class="ambient-blob ambient-blob-1 w-[260px] sm:w-[480px] h-[260px] sm:h-[480px] top-[-40px] left-[-40px] bg-rose-500/15"></div>
+  <div class="ambient-blob ambient-blob-2 w-[240px] sm:w-[460px] h-[240px] sm:h-[460px] top-[320px] right-[-60px] bg-amber-500/15"></div>
+
+  <!-- STICKY TOP APP HEADER -->
+  <header class="sticky top-0 z-40 w-full theme-glass border-b border-rose-500/30">
+    <div class="max-w-4xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+      
+      <!-- Brand Logo -->
+      <a href="index.html" class="flex items-center gap-2 group shrink-0">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform">
+          <i data-lucide="shield-alert" class="w-4 h-4 sm:w-5 sm:h-5 text-white font-black"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1">
+            <span class="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white">MediGo</span>
+            <span class="text-[8px] sm:text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">EMERGENCY</span>
+          </div>
+          <span class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium">Trauma Response Protocol</span>
+        </div>
+      </a>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <a href="index.html" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-sky-500 flex items-center gap-1">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Home</span>
+        </a>
+
+        <button id="theme-toggle-btn" title="Toggle Light / Dark Theme" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-amber-300 flex items-center justify-center">
+          <i data-lucide="sun" class="w-3.5 h-3.5 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-3.5 h-3.5 block dark:hidden"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN EMERGENCY CONTAINER -->
+  <main class="max-w-4xl mx-auto px-3 sm:px-6 pt-4 space-y-4">
+
+    <!-- URGENT 1-TAP HELPLINES BANNER -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <a href="tel:108" class="p-3 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-500 text-white flex items-center justify-between shadow-lg shadow-rose-500/25 active:scale-95 transition-all">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <i data-lucide="phone-call" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-rose-200 block">Ambulance</span>
+            <span class="text-base sm:text-lg font-black tracking-tight leading-none">108 SOS</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-white/20">CALL</span>
+      </a>
+
+      <a href="tel:112" class="p-3 rounded-2xl theme-card border border-rose-500/30 flex items-center justify-between shadow-sm active:scale-95 transition-all">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
+            <i data-lucide="shield-alert" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">All Emergency</span>
+            <span class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white leading-none">112 Helpline</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-bold text-rose-500">CALL</span>
+      </a>
+
+      <a href="tel:102" class="p-3 rounded-2xl theme-card border border-slate-200 dark:border-slate-800 col-span-2 sm:col-span-1 flex items-center justify-between shadow-sm active:scale-95 transition-all">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center shrink-0">
+            <i data-lucide="baby" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Maternity & Infant</span>
+            <span class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white leading-none">102 Janani</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-bold text-sky-500">CALL</span>
+      </a>
+    </div>
+
+    <!-- PRE-ARRIVAL PREPARATION FORM CARD -->
+    <div class="theme-card rounded-3xl p-4 sm:p-6 border border-rose-500/40 shadow-xl relative overflow-hidden">
+      
+      <!-- Card Header -->
+      <div class="flex items-start justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+            <span class="text-[10px] uppercase font-black tracking-widest text-rose-600 dark:text-rose-400">Live Hospital Inbound Link</span>
+          </div>
+          <h2 class="text-base sm:text-xl font-black text-slate-900 dark:text-white leading-tight">
+            Alert Hospital for Emergency Preparation
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Submit critical patient vitals to notify the hospital trauma desk to keep an ICU bed, ventilator, and surgical team ready before you arrive.
+          </p>
+        </div>
+        <div class="shrink-0 text-right">
+          <span class="px-2 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold flex items-center gap-1">
+            <i data-lucide="clock" class="w-3 h-3"></i> Urgent (15 Min)
+          </span>
+        </div>
+      </div>
+
+      <!-- INTAKE FORM -->
+      <form id="emergency-alert-form" class="space-y-4">
+
+        <!-- Row 1: Patient Demographics -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+              Patient Full Name *
+            </label>
+            <input 
+              type="text" 
+              id="patient-name" 
+              required 
+              placeholder="e.g. Ramesh Kumar"
+              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+              Age & Gender *
+            </label>
+            <div class="grid grid-cols-2 gap-1.5">
+              <input 
+                type="number" 
+                id="patient-age" 
+                required 
+                placeholder="Age (e.g. 54)" 
+                min="0" 
+                max="125"
+                class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 rounded-xl px-2 py-2.5 focus:outline-none focus:border-rose-500 text-center"
+              />
+              <select id="patient-gender" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white rounded-xl px-2 py-2.5 focus:outline-none focus:border-rose-500 font-medium">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+              Attendant Contact Number *
+            </label>
+            <input 
+              type="tel" 
+              id="patient-phone" 
+              required 
+              placeholder="+91 98765 43210"
+              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-500"
+            />
+          </div>
+        </div>
+
+        <!-- Row 2: Selected Hospital Destination -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              Select Receiving Hospital *
+            </label>
+            <button type="button" id="detect-gps-hospitals" class="text-[10px] font-bold text-sky-500 hover:underline flex items-center gap-1">
+              <i data-lucide="locate-fixed" class="w-3 h-3"></i> Refresh Nearest via GPS
+            </button>
+          </div>
+          <select id="hospital-select" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-900 dark:text-white rounded-xl px-3 py-3 focus:outline-none focus:border-rose-500">
+            <option value="" disabled selected>Select trauma-ready hospital...</option>
+          </select>
+          <div id="hospital-live-info" class="mt-1.5 p-2 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-[11px] flex items-center justify-between text-slate-600 dark:text-slate-300 hidden">
+            <span id="hospital-beds-preview">Emergency Beds: 42 • ICU: 38 Available</span>
+            <a id="hospital-call-direct" href="#" class="font-bold text-emerald-500 flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> Direct Desk</a>
+          </div>
+        </div>
+
+        <!-- Row 3: Emergency Condition -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+            Emergency Condition / Chief Complaint *
+          </label>
+          <select id="emergency-condition" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-500 mb-2">
+            <option value="Severe Chest Pain & Suspected Heart Attack (Cardiac Emergency)">🫀 Severe Chest Pain & Suspected Heart Attack (Cardiac)</option>
+            <option value="Accident & Severe Trauma / Multiple Fractures / Hemorrhage">🚨 Accident & Severe Trauma / Fractures / Hemorrhage</option>
+            <option value="Acute Stroke / Face Drooping / Paralysis Symptoms">🧠 Acute Stroke / Paralysis / Speech Loss</option>
+            <option value="Severe Breathing Distress / Oxygen Saturation Drop">🫁 Severe Breathing Difficulty / Cyanosis</option>
+            <option value="Pediatric High Fever with Seizures / Convulsions">👶 Pediatric High Fever with Seizures / Convulsions</option>
+            <option value="Severe Poisoning / Chemical Ingestion / Snake Bite">🧪 Severe Poisoning / Chemical Ingestion / Snake Bite</option>
+            <option value="Acute Severe Abdominal Pain / Gallbladder / Appendicitis">⚕️ Acute Severe Abdominal Pain / Appendicitis</option>
+            <option value="Other Critical Emergency Condition">⚠️ Other Critical Emergency Condition</option>
+          </select>
+        </div>
+
+        <!-- Row 4: Critical Hospital Preparations Checkboxes -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
+            Check Required Preparations (Alerts will be dispatched to hospital):
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-rose-500/50">
+              <input type="checkbox" name="prep" value="ICU Bed & Ventilator" checked class="accent-rose-500 w-4 h-4 rounded">
+              <span class="font-medium text-slate-800 dark:text-slate-200">🛏️ Reserve ICU / Ventilator Bed</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-rose-500/50">
+              <input type="checkbox" name="prep" value="Oxygen High-Flow Cannula" checked class="accent-rose-500 w-4 h-4 rounded">
+              <span class="font-medium text-slate-800 dark:text-slate-200">💨 High-Flow Oxygen Support</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-rose-500/50">
+              <input type="checkbox" name="prep" value="Trauma Surgeon & Cath Lab" class="accent-rose-500 w-4 h-4 rounded">
+              <span class="font-medium text-slate-800 dark:text-slate-200">👨‍⚕️ Trauma Surgeon / Cath Lab Standby</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-rose-500/50">
+              <input type="checkbox" name="prep" value="Blood Bank Pre-Crossmatch" class="accent-rose-500 w-4 h-4 rounded">
+              <span class="font-medium text-slate-800 dark:text-slate-200">🩸 Blood Bank Pre-Crossmatch</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Row 5: ETA Selector -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
+            Estimated Arrival Time (ETA):
+          </label>
+          <div class="flex items-center gap-2 overflow-x-auto pb-1" id="eta-pills-container">
+            <button type="button" data-eta="5" class="eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0">5 Mins</button>
+            <button type="button" data-eta="10" class="eta-btn px-3 py-1.5 rounded-xl border border-rose-500 bg-rose-500 text-white font-bold text-xs shrink-0">10 Mins</button>
+            <button type="button" data-eta="15" class="eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0">15 Mins</button>
+            <button type="button" data-eta="20" class="eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0">20 Mins</button>
+            <button type="button" data-eta="30" class="eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0">30+ Mins</button>
+          </div>
+        </div>
+
+        <!-- Row 6: Additional Clinical Notes -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+            EMT / Vitals / Additional Symptoms (Optional)
+          </label>
+          <textarea 
+            id="emergency-notes" 
+            rows="2" 
+            placeholder="e.g. Pulse 110, BP 85/50, conscious but disoriented. Patient traveling in private car."
+            class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500"
+          ></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <button 
+          type="submit" 
+          id="dispatch-alert-btn" 
+          class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-rose-500/30 active:scale-98 transition-all">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Dispatch Emergency Pre-Arrival Alert to Hospital</span>
+        </button>
+
+      </form>
+
+      <!-- CONFIRMATION / ACTIVE TICKET BANNER (Shown upon submission) -->
+      <div id="dispatch-success-banner" class="hidden mt-4 p-4 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/40 text-left">
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-emerald-500/20">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Hospital Alert Dispatched & Active</span>
+          </div>
+          <span id="ticket-ref-id" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"></span>
+        </div>
+
+        <div class="space-y-1.5 text-xs text-slate-700 dark:text-slate-200">
+          <p id="ticket-summary">Hospital Trauma Desk notified via automated email alert.</p>
+          <div class="grid grid-cols-2 gap-2 pt-2 text-[11px]">
+            <div class="p-2 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+              <span class="text-slate-400 block text-[9px] uppercase font-bold">ETA Countdown</span>
+              <span id="eta-countdown-display" class="font-extrabold text-amber-500 text-xs">~10 Minutes</span>
+            </div>
+            <div class="p-2 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+              <span class="text-slate-400 block text-[9px] uppercase font-bold">Preparation Status</span>
+              <span class="font-extrabold text-emerald-500 text-xs">Trauma Team Standby</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 flex items-center gap-2">
+          <a id="ticket-map-link" href="#" target="_blank" class="flex-1 py-2 rounded-xl bg-sky-500 text-white font-bold text-center text-xs flex items-center justify-center gap-1">
+            <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Navigate to Hospital
+          </a>
+          <a id="ticket-call-link" href="#" class="flex-1 py-2 rounded-xl bg-emerald-500 text-white font-bold text-center text-xs flex items-center justify-center gap-1">
+            <i data-lucide="phone" class="w-3.5 h-3.5"></i> Call Emergency Desk
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- NEAREST TRAUMA HOSPITALS LIST -->
+    <section class="space-y-2.5">
+      <div class="flex items-center justify-between px-1">
+        <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+          <i data-lucide="hospital" class="w-4 h-4 text-rose-500"></i> Nearest Trauma & ICU Centers
+        </h3>
+        <span class="text-[10px] text-slate-500 font-semibold" id="trauma-location-indicator">Tri-City Region</span>
+      </div>
+
+      <div id="trauma-hospitals-list" class="space-y-2">
+        <div class="py-8 text-center text-xs text-slate-500">Loading nearest emergency trauma centers...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const API_BASE = window.location.port === '5501' ? 'http://localhost:3000' : '';
+    let selectedEta = 10;
+    let hospitalsList = [];
+    let emergencyCoords = null;
+
+    // Theme Engine
+    const savedTheme = localStorage.getItem('medadvisor_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (savedTheme === 'light') document.documentElement.classList.remove('dark');
+    else document.documentElement.classList.add('dark');
+
+    document.getElementById('theme-toggle-btn').addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('medadvisor_theme', isDark ? 'dark' : 'light');
+      lucide.createIcons();
+    });
+
+    // ETA Selector Buttons
+    document.querySelectorAll('.eta-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.eta-btn').forEach(b => {
+          b.className = 'eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0';
+        });
+        btn.className = 'eta-btn px-3 py-1.5 rounded-xl border border-rose-500 bg-rose-500 text-white font-bold text-xs shrink-0';
+        selectedEta = Number(btn.getAttribute('data-eta')) || 10;
+      });
+    });
+
+    // Fetch and populate hospitals
+    async function loadTraumaHospitals(lat = emergencyCoords?.lat, lng = emergencyCoords?.lng) {
+      try {
+        const res = await fetch(`${API_BASE}/api/hospitals?emergencyOnly=true`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.hospitals)) {
+          hospitalsList = [...data.hospitals];
+          if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            const distanceKm = (a, b, c, d) => {
+              const radians = value => value * Math.PI / 180;
+              const x = Math.sin(radians(c - a) / 2) ** 2 + Math.cos(radians(a)) * Math.cos(radians(c)) * Math.sin(radians(d - b) / 2) ** 2;
+              return 6371 * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+            };
+            hospitalsList.forEach(h => h.distanceKm = distanceKm(lat, lng, h.lat, h.lon));
+            hospitalsList.sort((a, b) => a.distanceKm - b.distanceKm);
+          }
+          populateHospitalDropdown(hospitalsList);
+          renderTraumaCards(hospitalsList);
+        }
+      } catch (err) {
+        console.warn('Failed to load hospitals:', err);
+      }
+    }
+
+    function populateHospitalDropdown(hospitals) {
+      const select = document.getElementById('hospital-select');
+      select.innerHTML = '<option value="" disabled selected>Select trauma-ready hospital...</option>' + 
+        hospitals.map(h => `<option value="${h.id}">${h.name} (${h.city} • ${h.icuAvailable || 10} ICU Beds)</option>`).join('');
+      select.onchange = () => {
+        const chosen = hospitalsList.find(h => h.id === select.value);
+        const infoDiv = document.getElementById('hospital-live-info');
+        if (chosen && infoDiv) {
+          infoDiv.classList.remove('hidden');
+          document.getElementById('hospital-beds-preview').textContent = `Emergency: ${chosen.emergencyBedsAvailable || 12} Beds • ICU: ${chosen.icuAvailable || 10} Ready`;
+          document.getElementById('hospital-call-direct').href = `tel:${chosen.phone}`;
+        }
+      };
+      if (hospitals.length) {
+        select.value = hospitals[0].id;
+        select.dispatchEvent(new Event('change'));
+      }
+    }
+
+    function renderTraumaCards(hospitals) {
+      const container = document.getElementById('trauma-hospitals-list');
+      const topHospitals = hospitals.slice(0, 4);
+
+      container.innerHTML = topHospitals.map(h => `
+        <div class="theme-card rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-sm">
+          <div class="min-w-0 flex-1">
+            <span class="text-[9px] uppercase font-black text-rose-500 tracking-wider block">Apex 24/7 Trauma Unit</span>
+            <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate">${h.name}</h4>
+            <div class="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+          <span>📍 ${h.location}${Number.isFinite(h.distanceKm) ? ` • ${h.distanceKm.toFixed(1)} km away` : ''}</span>
+              <span>•</span>
+              <span class="text-emerald-500 font-bold">${h.icuAvailable || 12} ICU Beds Available</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <a href="${h.mapUrl || `https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lon}`}" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-xl bg-sky-500 text-white text-[11px] font-bold flex items-center gap-1" aria-label="Directions to ${h.name}">
+              <i data-lucide="navigation" class="w-3 h-3"></i> Directions
+            </a>
+            <a href="tel:${h.phone}" class="px-2.5 py-1.5 rounded-xl bg-emerald-500 text-white text-[11px] font-bold flex items-center gap-1">
+              <i data-lucide="phone" class="w-3 h-3"></i> Call
+            </a>
+            <button type="button" onclick="selectHospitalForIntake('${h.id}')" class="px-2.5 py-1.5 rounded-xl bg-rose-500 text-white text-[11px] font-bold">
+              Select
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    window.selectHospitalForIntake = function(hospitalId) {
+      const select = document.getElementById('hospital-select');
+      if (select) {
+        select.value = hospitalId;
+        select.dispatchEvent(new Event('change'));
+        window.scrollTo({ top: 120, behavior: 'smooth' });
+      }
+    };
+
+    // Form Submission
+    document.getElementById('emergency-alert-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('dispatch-alert-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>Sending Emergency Dispatch...</span>`;
+      lucide.createIcons();
+
+      const patientName = document.getElementById('patient-name').value.trim();
+      const patientAge = document.getElementById('patient-age').value.trim();
+      const patientGender = document.getElementById('patient-gender').value;
+      const patientPhone = document.getElementById('patient-phone').value.trim();
+      const hospitalId = document.getElementById('hospital-select').value;
+      const condition = document.getElementById('emergency-condition').value;
+      const notes = document.getElementById('emergency-notes').value.trim();
+
+      const chosenHospital = hospitalsList.find(h => h.id === hospitalId);
+      const hospitalName = chosenHospital ? chosenHospital.name : 'Emergency Centre';
+
+      const requiredCare = Array.from(document.querySelectorAll('input[name="prep"]:checked')).map(c => c.value);
+
+      try {
+        const response = await fetch(`${API_BASE}/api/emergency/notify-hospital`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientName,
+            patientAge,
+            patientGender,
+            patientPhone,
+            condition,
+            urgency: 'Emergency',
+            requiredCare,
+            etaMinutes: selectedEta,
+            hospitalId,
+            hospitalName,
+            notes,
+            location: emergencyCoords
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const banner = document.getElementById('dispatch-success-banner');
+          banner.classList.remove('hidden');
+          document.getElementById('ticket-ref-id').textContent = data.referenceId;
+          document.getElementById('ticket-summary').innerHTML = `
+            ${data.emailSent ? `Preparation alert emailed to <strong>${hospitalName}</strong> Emergency Desk.` : `Emergency request logged, but the hospital email could not be sent. Please call <strong>${hospitalName}</strong> or dial 108 now.`}<br>
+            Trauma room standby requested for <strong>${patientName}</strong> (${condition}).
+          `;
+          document.getElementById('eta-countdown-display').textContent = `~${selectedEta} Minutes`;
+          
+          if (chosenHospital) {
+            document.getElementById('ticket-map-link').href = `https://www.google.com/maps/dir/?api=1&destination=${chosenHospital.coordinates?.lat || chosenHospital.lat},${chosenHospital.coordinates?.lng || chosenHospital.lon}`;
+            document.getElementById('ticket-call-link').href = `tel:${chosenHospital.phone}`;
+          }
+
+          submitBtn.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm flex items-center justify-center gap-2";
+          submitBtn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i> <span>Preparation Alert Successfully Dispatched</span>`;
+          lucide.createIcons();
+          banner.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          alert(data.error || 'Failed to dispatch alert. Please dial 108 immediately.');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<span>Retry Dispatch</span>`;
+        }
+      } catch (err) {
+        alert('Network connection error. Dial 108 immediately.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Retry Dispatch</span>`;
+      }
+    });
+
+    // Geolocation trigger
+    document.getElementById('detect-gps-hospitals').addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            emergencyCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            loadTraumaHospitals(pos.coords.latitude, pos.coords.longitude);
+            document.getElementById('trauma-location-indicator').textContent = 'Nearest to your GPS location';
+          },
+          err => {
+            loadTraumaHospitals();
+          }
+        );
+      } else {
+        loadTraumaHospitals();
+      }
+    });
+
+    // Request GPS on entry so emergency facilities can be ranked by actual distance.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        emergencyCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
+        document.getElementById('trauma-location-indicator').textContent = 'Nearest to your GPS location';
+        loadTraumaHospitals();
+      }, () => {
+        document.getElementById('trauma-location-indicator').textContent = 'Enable location to sort by distance';
+        loadTraumaHospitals();
+      }, { enableHighAccuracy: true, timeout: 8000 });
+    } else loadTraumaHospitals();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

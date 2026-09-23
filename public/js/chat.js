@@ -117,11 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
         chatHistory.push({ role: 'model', content: data.reply });
         appendMessage('ai', data.reply, data);
       } else {
-        appendMessage('ai', 'MedAdvisor clinical service is temporarily busy. Please describe your symptoms again.');
+        appendMessage('ai', 'I couldn’t get a response just now. Please try again in a moment.');
       }
     } catch (err) {
       removeTypingIndicator(typingId);
-      appendMessage('ai', 'Network connection issue while communicating with MedAdvisor AI.');
+      appendMessage('ai', 'I can’t reach the assistant right now. Please try again in a moment.');
     }
   }
 
@@ -151,9 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-2.5 flex items-center justify-between gap-2 shadow-sm">
               <div class="min-w-0 flex-1">
                 <strong class="text-slate-900 dark:text-white text-xs block truncate">${escapeHtml(h.name)}</strong>
-                <span class="text-[10px] text-slate-500 dark:text-slate-400 block">${escapeHtml(h.city)} • <span class="text-emerald-600 dark:text-emerald-400 font-bold">🛏️ ${h.icuAvailable ?? 8} ICU Beds</span> • <span class="text-amber-500">★ ${h.rating}</span></span>
+            <span class="text-[10px] text-slate-500 dark:text-slate-400 block">${escapeHtml(h.city)}${Number.isFinite(h.distanceKm) ? ` • ${h.distanceKm} km away` : ''} • <span class="text-emerald-600 dark:text-emerald-400 font-bold">🛏️ ${h.icuAvailable ?? 8} ICU Beds</span> • <span class="text-amber-500">★ ${h.rating}</span></span>
               </div>
-              <a href="tel:${escapeHtml(h.phone)}" class="shrink-0 px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-[10px] rounded-lg shadow-sm">Call</a>
+              <div class="shrink-0 flex gap-1">
+                <a href="${escapeHtml(h.mapUrl)}" target="_blank" rel="noopener" class="px-2 py-1 bg-sky-500 hover:bg-sky-400 text-white font-bold text-[10px] rounded-lg shadow-sm">Directions</a>
+                <a href="tel:${escapeHtml(h.phone)}" class="px-2 py-1 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-[10px] rounded-lg shadow-sm">Call</a>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -168,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }">
         ${role === 'ai' ? `
           <div class="flex items-center justify-between gap-1 text-sky-600 dark:text-sky-400 font-bold mb-1.5 border-b border-slate-200 dark:border-slate-800/80 pb-1">
-            <span class="flex items-center gap-1.5"><i data-lucide="bot" class="w-3.5 h-3.5"></i> MedAdvisor Clinical AI</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="bot" class="w-3.5 h-3.5"></i> MediGo AI</span>
             <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-300 font-mono">${escapeHtml(data?.source || 'Gemini 3.8')}</span>
           </div>
         ` : ''}
@@ -189,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     div.className = 'flex justify-start';
     div.innerHTML = `
       <div class="theme-card text-slate-500 dark:text-slate-400 text-xs p-3 rounded-2xl rounded-tl-none border flex items-center gap-2">
-        <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin text-sky-500"></i> MedAdvisor AI is analyzing symptoms in your language...
+        <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin text-sky-500"></i> MediGo AI is thinking...
       </div>
     `;
     chatMessages.appendChild(div);
