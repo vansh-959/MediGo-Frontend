@@ -157,6 +157,11 @@ button, a, input, select {
   padding-bottom: max(env(safe-area-inset-bottom, 6px), 6px);
 }
 
+/* Keep the chat drawer above Leaflet's panes, controls, and markers. */
+#chat-drawer {
+  z-index: 2000;
+}
+
 /* Pulsing Badge Indicator */
 @keyframes ring-pulse {
   0% { transform: scale(0.95); opacity: 0.95; }
