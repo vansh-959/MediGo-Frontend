@@ -134,7 +134,7 @@ function initEventListeners() {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const input = document.getElementById('disease-search-input');
-            const query = input ? .value.trim();
+            const query = input?.value.trim();
             if (query) performDiseaseSearch(query, true);
         });
     }
@@ -228,14 +228,14 @@ function initEventListeners() {
     if (mobNavCompare) {
         mobNavCompare.addEventListener('click', () => {
             renderCompareModal();
-            document.getElementById('compare-modal') ? .classList.remove('hidden');
+            document.getElementById('compare-modal')?.classList.remove('hidden');
         });
     }
 
     if (mobNavChat) {
         mobNavChat.addEventListener('click', () => {
             const chatDrawer = document.getElementById('chat-drawer');
-            chatDrawer ? .classList.remove('translate-x-full');
+            chatDrawer?.classList.remove('translate-x-full');
             const chatInput = document.getElementById('chat-input');
             if (chatInput) setTimeout(() => chatInput.focus(), 300);
         });
@@ -262,10 +262,10 @@ function initEventListeners() {
             const isHidden = advisoryDetails.classList.contains('hidden');
             if (isHidden) {
                 advisoryDetails.classList.remove('hidden');
-                advisoryChevron ? .classList.add('rotate-180');
+                advisoryChevron?.classList.add('rotate-180');
             } else {
                 advisoryDetails.classList.add('hidden');
-                advisoryChevron ? .classList.remove('rotate-180');
+                advisoryChevron?.classList.remove('rotate-180');
             }
         });
     }
@@ -303,7 +303,7 @@ function initEventListeners() {
 
     const openCompare = () => {
         renderCompareModal();
-        compareModal ? .classList.remove('hidden');
+        compareModal?.classList.remove('hidden');
     };
 
     if (openCompareModalBtn) openCompareModalBtn.addEventListener('click', openCompare);
@@ -337,18 +337,18 @@ function switchView(viewName) {
     const cardsGrid = document.getElementById('hospitals-grid');
 
     if (viewName === 'cards') {
-        viewCardsBtn ? .classList.add('bg-sky-500', 'text-white', 'font-bold');
-        viewCardsBtn ? .classList.remove('text-slate-600', 'dark:text-slate-400');
-        viewMapBtn ? .classList.remove('bg-sky-500', 'text-white', 'font-bold');
-        viewMapBtn ? .classList.add('text-slate-600', 'dark:text-slate-400');
-        mapSection ? .classList.add('hidden');
-        cardsGrid ? .classList.remove('hidden');
+        viewCardsBtn?.classList.add('bg-sky-500', 'text-white', 'font-bold');
+        viewCardsBtn?.classList.remove('text-slate-600', 'dark:text-slate-400');
+        viewMapBtn?.classList.remove('bg-sky-500', 'text-white', 'font-bold');
+        viewMapBtn?.classList.add('text-slate-600', 'dark:text-slate-400');
+        mapSection?.classList.add('hidden');
+        cardsGrid?.classList.remove('hidden');
     } else {
-        viewMapBtn ? .classList.add('bg-sky-500', 'text-white', 'font-bold');
-        viewMapBtn ? .classList.remove('text-slate-600', 'dark:text-slate-400');
-        viewCardsBtn ? .classList.remove('bg-sky-500', 'text-white', 'font-bold');
-        viewCardsBtn ? .classList.add('text-slate-600', 'dark:text-slate-400');
-        mapSection ? .classList.remove('hidden');
+        viewMapBtn?.classList.add('bg-sky-500', 'text-white', 'font-bold');
+        viewMapBtn?.classList.remove('text-slate-600', 'dark:text-slate-400');
+        viewCardsBtn?.classList.remove('bg-sky-500', 'text-white', 'font-bold');
+        viewCardsBtn?.classList.add('text-slate-600', 'dark:text-slate-400');
+        mapSection?.classList.remove('hidden');
         setTimeout(() => initOrUpdateMap(), 150);
     }
 }
@@ -474,7 +474,7 @@ function triggerGeolocation() {
             }
 
             const input = document.getElementById('disease-search-input');
-            const query = input ? .value.trim() || 'hospitals near me';
+            const query = input?.value.trim() || 'hospitals near me';
             performDiseaseSearch(query, true);
         },
         (err) => {
@@ -482,7 +482,7 @@ function triggerGeolocation() {
             if (locateBtn) locateBtn.classList.remove('animate-spin');
             if (locText) locText.textContent = 'GPS unavailable. Enter a city or region to search nearby hospitals.';
             const input = document.getElementById('disease-search-input');
-            performDiseaseSearch(input ? .value.trim() || 'kidney treatment hospitals near me', false);
+            performDiseaseSearch(input?.value.trim() || 'kidney treatment hospitals near me', false);
         }, { enableHighAccuracy: true, timeout: 8000 }
     );
 }
@@ -498,7 +498,7 @@ async function performDiseaseSearch(query, scrollResults = false) {
     appState.currentQuery = cleanQuery;
 
     const cityInput = document.getElementById('city-override-input');
-    const cityOverride = cityInput ? .value.trim() || '';
+    const cityOverride = cityInput?.value.trim() || '';
 
     const searchSubmitBtn = document.getElementById('search-submit-btn');
     if (searchSubmitBtn) {
@@ -528,8 +528,8 @@ async function performDiseaseSearch(query, scrollResults = false) {
             body: JSON.stringify({
                 query: cleanQuery,
                 city: cityOverride,
-                lat: appState.userCoords ? .lat,
-                lon: appState.userCoords ? .lon
+                lat: appState.userCoords?.lat,
+                lon: appState.userCoords?.lon
             })
         });
 
@@ -540,7 +540,7 @@ async function performDiseaseSearch(query, scrollResults = false) {
 
         appState.hospitals = data.hospitals || [];
         appState.currentIntent = data.intent || null;
-        appState.detectedLocationName = data.searchLocation ? .name || 'Local Region';
+        appState.detectedLocationName = data.searchLocation?.name || 'Local Region';
 
         renderAIIntentSection(data.intent, data.searchLocation);
         applyFiltersAndSort();
@@ -551,7 +551,7 @@ async function performDiseaseSearch(query, scrollResults = false) {
 
         if (scrollResults) {
             const intentSection = document.getElementById('ai-intent-section');
-            intentSection ? .scrollIntoView({ behavior: 'smooth', block: 'start' });
+            intentSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
     } catch (err) {
@@ -594,7 +594,7 @@ function renderAIIntentSection(intent, locationInfo) {
 
     setVal('slot-disease', intent.disease || 'General Medical Problem');
     setVal('slot-specialty', intent.specialty ? `${intent.specialty} Department` : 'General Medicine');
-    setVal('slot-location', locationInfo ? .name || intent.location || 'Local Region');
+    setVal('slot-location', locationInfo?.name || intent.location || 'Local Region');
     setVal('intent-explainability-text', intent.explainability || 'Matched hospitals based on medical department and proximity.');
     setVal('ai-model-tag', intent.modelUsed || 'Gemini Clinical AI');
 
@@ -636,7 +636,7 @@ function applyFiltersAndSort() {
     } else if (appState.selectedFilter === 'icu') {
         list = list.filter(h => (h.icuAvailable || 0) >= 10);
     } else if (appState.selectedFilter === 'budget') {
-        list = list.filter(h => (h.estimatedTreatmentCost ? .min || h.avgConsultationCost || 0) <= 50000);
+        list = list.filter(h => (h.estimatedTreatmentCost?.min || h.avgConsultationCost || 0) <= 50000);
     } else if (appState.selectedFilter === 'rated') {
         list = list.filter(h => (h.rating || 0) >= 4.8);
     }
@@ -644,9 +644,9 @@ function applyFiltersAndSort() {
     // Apply Budget Cap Checkboxes
     if (appState.selectedBudgetCaps && appState.selectedBudgetCaps.size > 0) {
         list = list.filter(h => {
-            const minCost = h.estimatedTreatmentCost ? .min ? ? h.avgConsultationCost ? ? 0;
-            const maxCost = h.estimatedTreatmentCost ? .max ? ? minCost;
-            const consultCost = h.avgConsultationCost ? ? 0;
+            const minCost = h.estimatedTreatmentCost?.min ?? h.avgConsultationCost ?? 0;
+            const maxCost = h.estimatedTreatmentCost?.max ?? minCost;
+            const consultCost = h.avgConsultationCost ?? 0;
 
             for (const cap of appState.selectedBudgetCaps) {
                 const [low, high] = cap.split('-').map(Number);
@@ -660,15 +660,15 @@ function applyFiltersAndSort() {
 
     // Apply Sort
     if (appState.sortBy === 'distance') {
-        list.sort((a, b) => (a.distanceKm ? ? 999) - (b.distanceKm ? ? 999));
+        list.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
     } else if (appState.sortBy === 'cost') {
-        list.sort((a, b) => (a.estimatedTreatmentCost.min ? ? 999999) - (b.estimatedTreatmentCost.min ? ? 999999));
+        list.sort((a, b) => (a.estimatedTreatmentCost.min ?? 999999) - (b.estimatedTreatmentCost.min ?? 999999));
     } else if (appState.sortBy === 'beds') {
-        list.sort((a, b) => (b.icuAvailable ? ? 0) - (a.icuAvailable ? ? 0));
+        list.sort((a, b) => (b.icuAvailable ?? 0) - (a.icuAvailable ?? 0));
     } else if (appState.sortBy === 'rating') {
-        list.sort((a, b) => (b.rating ? ? 0) - (a.rating ? ? 0));
+        list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     } else {
-        list.sort((a, b) => (b.rankScore ? ? 0) - (a.rankScore ? ? 0));
+        list.sort((a, b) => (b.rankScore ?? 0) - (a.rankScore ?? 0));
     }
 
     appState.filteredHospitals = list;
@@ -702,7 +702,7 @@ function renderHospitalCards(hospitals) {
 
     container.innerHTML = hospitals.map(h => {
         const isCompared = appState.comparedIds.has(h.id);
-        const costMin = formatCurrency(h.estimatedTreatmentCost ? .min);
+        const costMin = formatCurrency(h.estimatedTreatmentCost?.min);
         const distanceDisplay = h.distanceKm != null ? `${h.distanceKm} km` : 'Near you';
         const commute = h.commuteDuration || `${Math.max(8, Math.round((h.distanceKm || 5) * 2.2 + 4))} mins`;
 

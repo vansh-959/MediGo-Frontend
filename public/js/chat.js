@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (chatForm) {
                 chatForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    const message = chatInput ? .value.trim();
+                    const message = chatInput?.value.trim();
                     if (message) {
                         submitChatMessage(message);
                     }
@@ -96,8 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const typingId = appendTypingIndicator();
 
                 try {
-                    const city = appState ? .detectedLocationName || '';
-                    const location = appState ? .userCoords || null;
+                    const city = appState?.detectedLocationName || '';
+                    const location = appState?.userCoords || null;
 
                     const res = await fetch(`${API_BASE}/api/chat`, {
                         method: 'POST',

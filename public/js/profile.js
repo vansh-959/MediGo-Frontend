@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         message.textContent = result.success ? 'Profile saved.' : result.error;
     };
 
-    document.getElementById('use-location').onclick = () => navigator.geolocation ? .getCurrentPosition(async position => {
+    document.getElementById('use-location').onclick = () => navigator.geolocation?.getCurrentPosition(async position => {
         const update = await fetch(`${apiBase}/api/auth/profile`, { method: 'PATCH', headers, body: JSON.stringify({ location: { lat: position.coords.latitude, lng: position.coords.longitude } }) });
         const result = await update.json();
         message.textContent = result.success ? 'Location saved for nearby recommendations.' : result.error;

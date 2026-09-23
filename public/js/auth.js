@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('medigo_token', data.token);
             localStorage.setItem('medigo_login_toast', JSON.stringify({
                 mode: mode,
-                name: data.user ? .name || (mode === 'signup' ? document.getElementById('name').value.trim() : 'Citizen')
+                name: data.user?.name || (mode === 'signup' ? document.getElementById('name').value.trim() : 'Citizen')
             }));
             message.textContent = mode === 'signup' ? 'Account created successfully.' : 'Signed in successfully.';
             showToast(mode === 'signup' ? 'Signup successful.' : 'Login successful.', 'success');
