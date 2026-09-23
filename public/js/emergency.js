@@ -5,6 +5,7 @@
   const locationIndicator = document.getElementById("trauma-location-indicator");
   let hospitals = [];
   let patientLocation = null;
+  let userSelectedHospital = false;
   let selectedEta = 10;
 
   const escapeHtml = (value) =>
@@ -35,12 +36,16 @@
     const result = [...hospitals];
     if (patientLocation) {
       result.forEach((hospital) => {
-        hospital.distanceKm = distanceKm(
+        const lat = Number(hospital.lat);
+        const lon = Number(hospital.lon);
+        hospital.distanceKm = Number.isFinite(lat) && Number.isFinite(lon)
+          ? distanceKm(
           patientLocation.lat,
           patientLocation.lng,
-          Number(hospital.lat),
-          Number(hospital.lon),
-        );
+          lat,
+          lon,
+        )
+          : Infinity;
       });
       result.sort((a, b) => a.distanceKm - b.distanceKm);
     }
@@ -68,7 +73,7 @@
         )
         .join("");
 
-    if (!ordered.some((hospital) => hospital.id === select.value)) {
+    if (!userSelectedHospital || !ordered.some((hospital) => hospital.id === select.value)) {
       select.value = ordered[0].id;
     }
     updateSelectedHospital();
@@ -82,7 +87,7 @@
         const phone = String(hospital.phone ?? "").replace(/[^+\d]/g, "");
         const distance = Number.isFinite(hospital.distanceKm)
           ? ` · ${hospital.distanceKm.toFixed(1)} km away`
-          : "";
+          : patientLocation ? " · distance unavailable" : "";
         return `
           <article class="theme-card rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-sm">
             <div class="min-w-0 flex-1">
@@ -105,6 +110,7 @@
     hospitalList.querySelectorAll("[data-select-hospital]").forEach((button) => {
       button.addEventListener("click", () => {
         select.value = button.dataset.selectHospital;
+        userSelectedHospital = true;
         updateSelectedHospital();
         select.focus();
       });
@@ -149,12 +155,45 @@
   };
 
   const setLocation = (position) => {
+    const lat = position?.coords?.latitude;
+    const lng = position?.coords?.longitude;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      locationIndicator.textContent = "Could not read device location · showing all centers";
+      return;
+    }
     patientLocation = {
-      lat: position.coords.latitude,
-      lng: position.coords.longitude,
+      lat,
+      lng,
     };
-    locationIndicator.textContent = "Nearest to your GPS location";
+    locationIndicator.textContent = "Hospitals sorted nearest to your location";
     renderHospitals();
+  };
+
+  const locateHospitals = () => {
+    if (!window.isSecureContext) {
+      locationIndicator.textContent = "Location needs HTTPS or localhost · showing all centers";
+      return;
+    }
+    if (!navigator.geolocation) {
+      locationIndicator.textContent = "This browser/device does not support location · showing all centers";
+      return;
+    }
+
+    locationIndicator.textContent = "Requesting device location permission…";
+    navigator.geolocation.getCurrentPosition(
+      setLocation,
+      (error) => {
+        const reason = error?.code === 1
+          ? "Location permission denied"
+          : error?.code === 2
+            ? "Device location unavailable"
+            : error?.code === 3
+              ? "Location request timed out"
+              : "Could not get device location";
+        locationIndicator.textContent = `${reason} · enable location and try Refresh; showing all centers`;
+      },
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 },
+    );
   };
 
   document.getElementById("theme-toggle-btn").addEventListener("click", () => {
@@ -189,22 +228,13 @@
     });
   });
 
-  select.addEventListener("change", updateSelectedHospital);
+  select.addEventListener("change", () => {
+    userSelectedHospital = true;
+    updateSelectedHospital();
+  });
   document
     .getElementById("detect-gps-hospitals")
-    .addEventListener("click", () => {
-      if (!navigator.geolocation) {
-        locationIndicator.textContent = "GPS is unavailable · showing all centers";
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        setLocation,
-        () => {
-          locationIndicator.textContent = "Location unavailable · showing all centers";
-        },
-        { enableHighAccuracy: true, timeout: 8000 },
-      );
-    });
+    .addEventListener("click", locateHospitals);
 
   document
     .getElementById("emergency-alert-form")
@@ -256,7 +286,7 @@
           : `The request was logged, but the hospital email was not sent. Call ${chosenHospital.name} at ${chosenHospital.phone} or dial 108 now.`;
         document.getElementById("eta-countdown-display").textContent = `~${selectedEta} minutes`;
         const mapLink = document.getElementById("ticket-map-link");
-        mapLink.href = chosenHospital.mapUrl;
+        mapLink.href = chosenHospital.mapUrl || `https://www.google.com/maps/dir/?api=1&destination=${Number(chosenHospital.lat)},${Number(chosenHospital.lon)}`;
         const callLink = document.getElementById("ticket-call-link");
         callLink.href = `tel:${String(chosenHospital.phone ?? "").replace(/[^+\d]/g, "")}`;
         button.textContent = "Alert logged · call 108 for immediate help";
@@ -273,16 +303,6 @@
     });
 
   loadHospitals();
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      setLocation,
-      () => {
-        locationIndicator.textContent = "Enable location to sort by distance";
-      },
-      { enableHighAccuracy: true, timeout: 8000 },
-    );
-  } else {
-    locationIndicator.textContent = "GPS unavailable · showing all centers";
-  }
+  locateHospitals();
   window.lucide?.createIcons();
 })();
