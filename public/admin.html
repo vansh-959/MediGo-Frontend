@@ -1,267 +1,411 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MediGo Admin | Hospital Command Center & Emergency Dispatch</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 50: '#f0f9ff', 500: '#0ea5e9', 600: '#0284c7' }
-          }
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>MediGo Admin | Hospital Command Center & Emergency Dispatch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: "#f0f9ff",
+                500: "#0ea5e9",
+                600: "#0284c7",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+
+  <body
+    class="theme-bg font-sans min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-200 pb-16"
+  >
+    <script>
+      document.body.style.visibility = "hidden";
+    </script>
+
+    <!-- Ambient Light Accents -->
+    <div
+      class="ambient-blob ambient-blob-1 w-[260px] sm:w-[480px] h-[260px] sm:h-[480px] top-[-40px] left-[-40px] bg-indigo-500/10"
+    ></div>
+    <div
+      class="ambient-blob ambient-blob-2 w-[240px] sm:w-[460px] h-[240px] sm:h-[460px] top-[320px] right-[-60px] bg-sky-500/10"
+    ></div>
+
+    <!-- STICKY TOP APP HEADER -->
+    <header
+      class="sticky top-0 z-40 w-full theme-glass border-b border-indigo-500/30"
+    >
+      <div
+        class="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2"
+      >
+        <!-- Brand Logo -->
+        <a href="index.html" class="flex items-center gap-2 group shrink-0">
+          <div
+            class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-sky-500 to-emerald-400 flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform"
+          >
+            <i
+              data-lucide="shield-check"
+              class="w-4 h-4 sm:w-5 sm:h-5 text-white font-black"
+            ></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1">
+              <span
+                class="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white"
+                >MediGo</span
+              >
+              <span
+                class="text-[8px] sm:text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30"
+                >ADMIN</span
+              >
+            </div>
+            <span
+              class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium"
+              >Healthcare Command Center</span
+            >
+          </div>
+        </a>
+
+        <!-- Right Header Actions -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <a
+            href="index.html"
+            class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-sky-500 flex items-center gap-1"
+          >
+            <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Citizen Portal</span>
+          </a>
+
+          <a
+            href="emergency.html"
+            class="px-2.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-bold flex items-center gap-1"
+          >
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Emergency SOS</span>
+          </a>
+
+          <button
+            id="theme-toggle-btn"
+            title="Toggle Light / Dark Theme"
+            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-amber-300 flex items-center justify-center"
+          >
+            <i data-lucide="sun" class="w-3.5 h-3.5 hidden dark:block"></i>
+            <i data-lucide="moon" class="w-3.5 h-3.5 block dark:hidden"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN ADMIN DASHBOARD -->
+    <main class="max-w-6xl mx-auto px-3 sm:px-6 pt-4 space-y-4">
+      <!-- KPI METRICS ROW -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div
+          class="theme-card rounded-2xl p-3 border border-rose-500/30 shadow-sm relative overflow-hidden"
+        >
+          <div class="flex items-center justify-between text-rose-500 mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider"
+              >Active Emergencies</span
+            >
+            <i data-lucide="alert-circle" class="w-4 h-4"></i>
+          </div>
+          <div
+            class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400"
+            id="kpi-emergencies"
+          >
+            --
+          </div>
+          <span class="text-[9px] text-slate-400 block mt-0.5"
+            >Live Inbound Dispatches</span
+          >
+        </div>
+
+        <div
+          class="theme-card rounded-2xl p-3 border border-sky-500/30 shadow-sm relative overflow-hidden"
+        >
+          <div class="flex items-center justify-between text-sky-500 mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider"
+              >Partner Hospitals</span
+            >
+            <i data-lucide="hospital" class="w-4 h-4"></i>
+          </div>
+          <div
+            class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white"
+            id="kpi-hospitals"
+          >
+            --
+          </div>
+          <span class="text-[9px] text-slate-400 block mt-0.5"
+            >Verified Medical Centers</span
+          >
+        </div>
+
+        <div
+          class="theme-card rounded-2xl p-3 border border-emerald-500/30 shadow-sm relative overflow-hidden"
+        >
+          <div class="flex items-center justify-between text-emerald-500 mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider"
+              >Ready ICU Beds</span
+            >
+            <i data-lucide="activity" class="w-4 h-4"></i>
+          </div>
+          <div
+            class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400"
+            id="kpi-beds"
+          >
+            --
+          </div>
+          <span class="text-[9px] text-slate-400 block mt-0.5"
+            >Emergency & Critical Care</span
+          >
+        </div>
+
+        <div
+          class="theme-card rounded-2xl p-3 border border-amber-500/30 shadow-sm relative overflow-hidden"
+        >
+          <div class="flex items-center justify-between text-amber-500 mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider"
+              >Citizen Reviews</span
+            >
+            <i data-lucide="star" class="w-4 h-4"></i>
+          </div>
+          <div
+            class="text-xl sm:text-2xl font-black text-amber-500"
+            id="kpi-reviews"
+          >
+            --
+          </div>
+          <span class="text-[9px] text-slate-400 block mt-0.5"
+            >Verified Patient Feedback</span
+          >
+        </div>
+      </div>
+
+      <!-- ADMIN TABS NAVIGATION (Responsive scrollable) -->
+      <div
+        class="flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto hide-scrollbar"
+      >
+        <button
+          type="button"
+          data-tab="emergencies"
+          class="admin-tab px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-black text-xs shrink-0 flex items-center gap-1.5 shadow-sm"
+        >
+          <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+          <span>🚨 Emergency Dispatches</span>
+        </button>
+        <button
+          type="button"
+          data-tab="hospitals"
+          class="admin-tab px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 flex items-center gap-1.5"
+        >
+          <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+          <span>🏥 Hospital Bed Manager</span>
+        </button>
+        <button
+          type="button"
+          data-tab="reviews"
+          class="admin-tab px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 flex items-center gap-1.5"
+        >
+          <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+          <span>⭐ Reviews Moderation</span>
+        </button>
+        <button
+          type="button"
+          data-tab="citizens"
+          class="admin-tab px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 flex items-center gap-1.5"
+        >
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>👥 Registered Citizens</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: EMERGENCY DISPATCHES STREAM -->
+      <section id="tab-emergencies-panel" class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h3
+            class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5"
+          >
+            <span>Inbound Patient Emergency Tickets</span>
+            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+          </h3>
+          <button
+            id="refresh-emergencies-btn"
+            class="text-xs font-bold text-indigo-500 hover:underline flex items-center gap-1"
+          >
+            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh Feed
+          </button>
+        </div>
+
+        <div id="emergencies-container" class="space-y-2.5">
+          <div class="py-8 text-center text-xs text-slate-500">
+            Loading emergency dispatches...
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: HOSPITAL BED MANAGEMENT -->
+      <section id="tab-hospitals-panel" class="space-y-3 hidden">
+        <div class="flex items-center justify-between">
+          <h3
+            class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white"
+          >
+            Hospital Emergency & ICU Bed Availability Controller
+          </h3>
+          <span class="text-[10px] text-slate-500"
+            >Click "Save" on any row to update live system</span
+          >
+        </div>
+
+        <div id="hospitals-management-container" class="space-y-2.5">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 3: REVIEWS MODERATION -->
+      <section id="tab-reviews-panel" class="space-y-3 hidden">
+        <div class="flex items-center justify-between">
+          <h3
+            class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white"
+          >
+            Citizen Hospital Reviews Moderation
+          </h3>
+          <span class="text-[10px] text-slate-500"
+            >Delete inappropriate or spam reviews</span
+          >
+        </div>
+
+        <div id="reviews-moderation-container" class="space-y-2.5">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 4: REGISTERED CITIZENS -->
+      <section id="tab-citizens-panel" class="space-y-3 hidden">
+        <div class="flex items-center justify-between">
+          <h3
+            class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white"
+          >
+            Registered Citizens Database
+          </h3>
+          <span class="text-[10px] text-slate-500" id="citizens-count-text"
+            >Citizens</span
+          >
+        </div>
+
+        <div id="citizens-container" class="space-y-2">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script>
+      const API_BASE = window.MEDIGO_API_BASE;
+      const adminToken =
+        localStorage.getItem("medadvisor_token") ||
+        localStorage.getItem("medigo_token");
+      async function adminFetch(url, options = {}) {
+        const headers = {
+          ...(options.headers || {}),
+          Authorization: `Bearer ${adminToken || ""}`,
+        };
+        return fetch(url, { ...options, headers });
+      }
+      async function verifyOwner() {
+        if (!adminToken) return false;
+        try {
+          const response = await adminFetch(`${API_BASE}/api/admin/stats`);
+          return response.ok;
+        } catch (_) {
+          return false;
         }
       }
-    };
-  </script>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body class="theme-bg font-sans min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-200 pb-16">
-  <script>document.body.style.visibility = 'hidden';</script>
 
-  <!-- Ambient Light Accents -->
-  <div class="ambient-blob ambient-blob-1 w-[260px] sm:w-[480px] h-[260px] sm:h-[480px] top-[-40px] left-[-40px] bg-indigo-500/10"></div>
-  <div class="ambient-blob ambient-blob-2 w-[240px] sm:w-[460px] h-[240px] sm:h-[460px] top-[320px] right-[-60px] bg-sky-500/10"></div>
+      // Theme Engine
+      const savedTheme =
+        localStorage.getItem("medadvisor_theme") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light");
+      if (savedTheme === "light")
+        document.documentElement.classList.remove("dark");
+      else document.documentElement.classList.add("dark");
 
-  <!-- STICKY TOP APP HEADER -->
-  <header class="sticky top-0 z-40 w-full theme-glass border-b border-indigo-500/30">
-    <div class="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
-      
-      <!-- Brand Logo -->
-      <a href="index.html" class="flex items-center gap-2 group shrink-0">
-        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-sky-500 to-emerald-400 flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-          <i data-lucide="shield-check" class="w-4 h-4 sm:w-5 sm:h-5 text-white font-black"></i>
-        </div>
-        <div>
-          <div class="flex items-center gap-1">
-            <span class="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white">MediGo</span>
-            <span class="text-[8px] sm:text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">ADMIN</span>
-          </div>
-          <span class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium">Healthcare Command Center</span>
-        </div>
-      </a>
-
-      <!-- Right Header Actions -->
-      <div class="flex items-center gap-1.5 sm:gap-2">
-        <a href="index.html" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-sky-500 flex items-center gap-1">
-          <i data-lucide="globe" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Citizen Portal</span>
-        </a>
-
-        <a href="emergency.html" class="px-2.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-bold flex items-center gap-1">
-          <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Emergency SOS</span>
-        </a>
-
-        <button id="theme-toggle-btn" title="Toggle Light / Dark Theme" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-amber-300 flex items-center justify-center">
-          <i data-lucide="sun" class="w-3.5 h-3.5 hidden dark:block"></i>
-          <i data-lucide="moon" class="w-3.5 h-3.5 block dark:hidden"></i>
-        </button>
-      </div>
-
-    </div>
-  </header>
-
-  <!-- MAIN ADMIN DASHBOARD -->
-  <main class="max-w-6xl mx-auto px-3 sm:px-6 pt-4 space-y-4">
-
-    <!-- KPI METRICS ROW -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-      
-      <div class="theme-card rounded-2xl p-3 border border-rose-500/30 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between text-rose-500 mb-1">
-          <span class="text-[10px] uppercase font-bold tracking-wider">Active Emergencies</span>
-          <i data-lucide="alert-circle" class="w-4 h-4"></i>
-        </div>
-        <div class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400" id="kpi-emergencies">--</div>
-        <span class="text-[9px] text-slate-400 block mt-0.5">Live Inbound Dispatches</span>
-      </div>
-
-      <div class="theme-card rounded-2xl p-3 border border-sky-500/30 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between text-sky-500 mb-1">
-          <span class="text-[10px] uppercase font-bold tracking-wider">Partner Hospitals</span>
-          <i data-lucide="hospital" class="w-4 h-4"></i>
-        </div>
-        <div class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white" id="kpi-hospitals">--</div>
-        <span class="text-[9px] text-slate-400 block mt-0.5">Verified Medical Centers</span>
-      </div>
-
-      <div class="theme-card rounded-2xl p-3 border border-emerald-500/30 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between text-emerald-500 mb-1">
-          <span class="text-[10px] uppercase font-bold tracking-wider">Ready ICU Beds</span>
-          <i data-lucide="activity" class="w-4 h-4"></i>
-        </div>
-        <div class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400" id="kpi-beds">--</div>
-        <span class="text-[9px] text-slate-400 block mt-0.5">Emergency & Critical Care</span>
-      </div>
-
-      <div class="theme-card rounded-2xl p-3 border border-amber-500/30 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between text-amber-500 mb-1">
-          <span class="text-[10px] uppercase font-bold tracking-wider">Citizen Reviews</span>
-          <i data-lucide="star" class="w-4 h-4"></i>
-        </div>
-        <div class="text-xl sm:text-2xl font-black text-amber-500" id="kpi-reviews">--</div>
-        <span class="text-[9px] text-slate-400 block mt-0.5">Verified Patient Feedback</span>
-      </div>
-
-    </div>
-
-    <!-- ADMIN TABS NAVIGATION (Responsive scrollable) -->
-    <div class="flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto hide-scrollbar">
-      <button type="button" data-tab="emergencies" class="admin-tab px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-black text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
-        <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
-        <span>🚨 Emergency Dispatches</span>
-      </button>
-      <button type="button" data-tab="hospitals" class="admin-tab px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 flex items-center gap-1.5">
-        <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
-        <span>🏥 Hospital Bed Manager</span>
-      </button>
-      <button type="button" data-tab="reviews" class="admin-tab px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 flex items-center gap-1.5">
-        <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
-        <span>⭐ Reviews Moderation</span>
-      </button>
-      <button type="button" data-tab="citizens" class="admin-tab px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 flex items-center gap-1.5">
-        <i data-lucide="users" class="w-3.5 h-3.5"></i>
-        <span>👥 Registered Citizens</span>
-      </button>
-    </div>
-
-    <!-- TAB 1: EMERGENCY DISPATCHES STREAM -->
-    <section id="tab-emergencies-panel" class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
-          <span>Inbound Patient Emergency Tickets</span>
-          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-        </h3>
-        <button id="refresh-emergencies-btn" class="text-xs font-bold text-indigo-500 hover:underline flex items-center gap-1">
-          <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh Feed
-        </button>
-      </div>
-
-      <div id="emergencies-container" class="space-y-2.5">
-        <div class="py-8 text-center text-xs text-slate-500">Loading emergency dispatches...</div>
-      </div>
-    </section>
-
-    <!-- TAB 2: HOSPITAL BED MANAGEMENT -->
-    <section id="tab-hospitals-panel" class="space-y-3 hidden">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
-          Hospital Emergency & ICU Bed Availability Controller
-        </h3>
-        <span class="text-[10px] text-slate-500">Click "Save" on any row to update live system</span>
-      </div>
-
-      <div id="hospitals-management-container" class="space-y-2.5">
-        <!-- Rendered by JS -->
-      </div>
-    </section>
-
-    <!-- TAB 3: REVIEWS MODERATION -->
-    <section id="tab-reviews-panel" class="space-y-3 hidden">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
-          Citizen Hospital Reviews Moderation
-        </h3>
-        <span class="text-[10px] text-slate-500">Delete inappropriate or spam reviews</span>
-      </div>
-
-      <div id="reviews-moderation-container" class="space-y-2.5">
-        <!-- Rendered by JS -->
-      </div>
-    </section>
-
-    <!-- TAB 4: REGISTERED CITIZENS -->
-    <section id="tab-citizens-panel" class="space-y-3 hidden">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
-          Registered Citizens Database
-        </h3>
-        <span class="text-[10px] text-slate-500" id="citizens-count-text">Citizens</span>
-      </div>
-
-      <div id="citizens-container" class="space-y-2">
-        <!-- Rendered by JS -->
-      </div>
-    </section>
-
-  </main>
-
-  <script>
-    const API_BASE = window.location.port === '5501' ? 'http://localhost:3000' : '';
-    const adminToken = localStorage.getItem('medadvisor_token') || localStorage.getItem('medigo_token');
-    async function adminFetch(url, options = {}) {
-      const headers = { ...(options.headers || {}), Authorization: `Bearer ${adminToken || ''}` };
-      return fetch(url, { ...options, headers });
-    }
-    async function verifyOwner() {
-      if (!adminToken) return false;
-      try {
-        const response = await adminFetch(`${API_BASE}/api/admin/stats`);
-        return response.ok;
-      } catch (_) { return false; }
-    }
-
-    // Theme Engine
-    const savedTheme = localStorage.getItem('medadvisor_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    if (savedTheme === 'light') document.documentElement.classList.remove('dark');
-    else document.documentElement.classList.add('dark');
-
-    document.getElementById('theme-toggle-btn').addEventListener('click', () => {
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('medadvisor_theme', isDark ? 'dark' : 'light');
-      lucide.createIcons();
-    });
-
-    // Tab Navigation
-    document.querySelectorAll('.admin-tab').forEach(tabBtn => {
-      tabBtn.addEventListener('click', () => {
-        const tab = tabBtn.getAttribute('data-tab');
-        
-        document.querySelectorAll('.admin-tab').forEach(b => {
-          b.className = 'admin-tab px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 flex items-center gap-1.5';
+      document
+        .getElementById("theme-toggle-btn")
+        .addEventListener("click", () => {
+          const isDark = document.documentElement.classList.toggle("dark");
+          localStorage.setItem("medadvisor_theme", isDark ? "dark" : "light");
+          lucide.createIcons();
         });
-        tabBtn.className = 'admin-tab px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-black text-xs shrink-0 flex items-center gap-1.5 shadow-sm';
 
-        ['emergencies', 'hospitals', 'reviews', 'citizens'].forEach(t => {
-          document.getElementById(`tab-${t}-panel`).classList.toggle('hidden', t !== tab);
+      // Tab Navigation
+      document.querySelectorAll(".admin-tab").forEach((tabBtn) => {
+        tabBtn.addEventListener("click", () => {
+          const tab = tabBtn.getAttribute("data-tab");
+
+          document.querySelectorAll(".admin-tab").forEach((b) => {
+            b.className =
+              "admin-tab px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 flex items-center gap-1.5";
+          });
+          tabBtn.className =
+            "admin-tab px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-black text-xs shrink-0 flex items-center gap-1.5 shadow-sm";
+
+          ["emergencies", "hospitals", "reviews", "citizens"].forEach((t) => {
+            document
+              .getElementById(`tab-${t}-panel`)
+              .classList.toggle("hidden", t !== tab);
+          });
         });
       });
-    });
 
-    // Load Stats
-    async function loadStats() {
-      try {
-        const res = await adminFetch(`${API_BASE}/api/admin/stats`);
-        const data = await res.json();
-        if (data.success && data.stats) {
-          document.getElementById('kpi-emergencies').textContent = data.stats.activeEmergencies;
-          document.getElementById('kpi-hospitals').textContent = data.stats.totalHospitals;
-          document.getElementById('kpi-beds').textContent = `${data.stats.totalIcu} ICU`;
-          document.getElementById('kpi-reviews').textContent = data.stats.totalReviews;
-        }
-      } catch (e) {
-        console.warn('Stats load err:', e);
-      }
-    }
-
-    // Load Emergencies
-    async function loadEmergencies() {
-      const container = document.getElementById('emergencies-container');
-      try {
-        const res = await adminFetch(`${API_BASE}/api/admin/emergencies`);
-        const data = await res.json();
-        if (data.success && Array.isArray(data.emergencies)) {
-          if (data.emergencies.length === 0) {
-            container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 theme-card rounded-2xl border">No active emergency alerts. All quiet.</div>`;
-            return;
+      // Load Stats
+      async function loadStats() {
+        try {
+          const res = await adminFetch(`${API_BASE}/api/admin/stats`);
+          const data = await res.json();
+          if (data.success && data.stats) {
+            document.getElementById("kpi-emergencies").textContent =
+              data.stats.activeEmergencies;
+            document.getElementById("kpi-hospitals").textContent =
+              data.stats.totalHospitals;
+            document.getElementById("kpi-beds").textContent =
+              `${data.stats.totalIcu} ICU`;
+            document.getElementById("kpi-reviews").textContent =
+              data.stats.totalReviews;
           }
+        } catch (e) {
+          console.warn("Stats load err:", e);
+        }
+      }
 
-          container.innerHTML = data.emergencies.map(emg => `
+      // Load Emergencies
+      async function loadEmergencies() {
+        const container = document.getElementById("emergencies-container");
+        try {
+          const res = await adminFetch(`${API_BASE}/api/admin/emergencies`);
+          const data = await res.json();
+          if (data.success && Array.isArray(data.emergencies)) {
+            if (data.emergencies.length === 0) {
+              container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 theme-card rounded-2xl border">No active emergency alerts. All quiet.</div>`;
+              return;
+            }
+
+            container.innerHTML = data.emergencies
+              .map(
+                (emg) => `
             <div class="theme-card rounded-2xl p-4 border border-rose-500/30 shadow-sm space-y-2">
               <div class="flex items-start justify-between gap-2">
                 <div>
@@ -270,7 +414,7 @@
                     <span class="text-[10px] text-slate-400">${new Date(emg.createdAt).toLocaleTimeString()}</span>
                   </div>
                   <h4 class="text-sm font-extrabold text-slate-900 dark:text-white mt-1">
-                    ${emg.patientName} (${emg.patientAge || 'Age N/A'}, ${emg.patientGender || 'Unspecified'})
+                    ${emg.patientName} (${emg.patientAge || "Age N/A"}, ${emg.patientGender || "Unspecified"})
                   </h4>
                   <p class="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-0.5">
                     🚨 ${emg.condition}
@@ -279,8 +423,8 @@
 
                 <div class="text-right">
                   <span class="text-xs font-black text-amber-500 block">⚡ ETA ~${emg.etaMinutes} mins</span>
-                  <span class="text-[10px] px-2 py-0.5 rounded-full ${emg.emailDispatched ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-500/15 text-slate-400'} font-bold inline-block mt-1">
-                    ${emg.emailDispatched ? 'Email Delivered' : 'Logged Live'}
+                  <span class="text-[10px] px-2 py-0.5 rounded-full ${emg.emailDispatched ? "bg-emerald-500/15 text-emerald-400" : "bg-slate-500/15 text-slate-400"} font-bold inline-block mt-1">
+                    ${emg.emailDispatched ? "Email Delivered" : "Logged Live"}
                   </span>
                 </div>
               </div>
@@ -296,7 +440,7 @@
                 </div>
                 <div>
                   <span class="text-[10px] uppercase font-bold text-slate-400 block">Required Care:</span>
-                  <span class="font-medium text-emerald-500">${Array.isArray(emg.requiredCare) ? emg.requiredCare.join(', ') : emg.requiredCare}</span>
+                  <span class="font-medium text-emerald-500">${Array.isArray(emg.requiredCare) ? emg.requiredCare.join(", ") : emg.requiredCare}</span>
                 </div>
               </div>
 
@@ -313,41 +457,54 @@
                 </div>
               </div>
             </div>
-          `).join('');
+          `,
+              )
+              .join("");
 
-          lucide.createIcons();
+            lucide.createIcons();
+          }
+        } catch (err) {
+          container.innerHTML = `<div class="p-4 text-xs text-rose-500">Failed to load emergencies.</div>`;
         }
-      } catch (err) {
-        container.innerHTML = `<div class="p-4 text-xs text-rose-500">Failed to load emergencies.</div>`;
       }
-    }
 
-    window.updateEmergencyStatus = async function(id, status) {
-      if (!status) return;
-      try {
-        const res = await adminFetch(`${API_BASE}/api/admin/emergencies/${id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status })
-        });
-        const data = await res.json();
-        if (data.success) {
-          loadEmergencies();
-          loadStats();
+      window.updateEmergencyStatus = async function (id, status) {
+        if (!status) return;
+        try {
+          const res = await adminFetch(
+            `${API_BASE}/api/admin/emergencies/${id}`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                status,
+              }),
+            },
+          );
+          const data = await res.json();
+          if (data.success) {
+            loadEmergencies();
+            loadStats();
+          }
+        } catch (e) {
+          alert("Could not update status.");
         }
-      } catch (e) {
-        alert('Could not update status.');
-      }
-    };
+      };
 
-    // Load Hospitals
-    async function loadHospitals() {
-      const container = document.getElementById('hospitals-management-container');
-      try {
-        const res = await adminFetch(`${API_BASE}/api/admin/hospitals`);
-        const data = await res.json();
-        if (data.success && Array.isArray(data.hospitals)) {
-          container.innerHTML = data.hospitals.map(h => `
+      // Load Hospitals
+      async function loadHospitals() {
+        const container = document.getElementById(
+          "hospitals-management-container",
+        );
+        try {
+          const res = await adminFetch(`${API_BASE}/api/admin/hospitals`);
+          const data = await res.json();
+          if (data.success && Array.isArray(data.hospitals)) {
+            container.innerHTML = data.hospitals
+              .map(
+                (h) => `
             <div class="theme-card rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div class="min-w-0 flex-1">
                 <span class="text-[9px] uppercase font-bold text-sky-500">${h.type} • ${h.city}</span>
@@ -371,52 +528,72 @@
                 </button>
               </div>
             </div>
-          `).join('');
-        }
-      } catch (err) {
-        container.innerHTML = `<div class="p-4 text-xs text-rose-500">Failed to load hospitals.</div>`;
-      }
-    }
-
-    window.saveHospitalBeds = async function(id) {
-      const erVal = parseInt(document.getElementById(`er-beds-${id}`).value, 10);
-      const icuVal = parseInt(document.getElementById(`icu-beds-${id}`).value, 10);
-
-      try {
-        const res = await adminFetch(`${API_BASE}/api/admin/hospitals/${id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ emergencyBedsAvailable: erVal, icuAvailable: icuVal })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert('Hospital bed counts updated successfully.');
-          loadStats();
-        }
-      } catch (e) {
-        alert('Failed to update hospital.');
-      }
-    };
-
-    // Load Reviews
-    async function loadReviews() {
-      const container = document.getElementById('reviews-moderation-container');
-      try {
-        const res = await fetch(`${API_BASE}/api/reviews`);
-        const data = await res.json();
-        if (data.success && Array.isArray(data.reviews)) {
-          if (data.reviews.length === 0) {
-            container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 theme-card rounded-2xl border">No reviews published yet.</div>`;
-            return;
+          `,
+              )
+              .join("");
           }
+        } catch (err) {
+          container.innerHTML = `<div class="p-4 text-xs text-rose-500">Failed to load hospitals.</div>`;
+        }
+      }
 
-          container.innerHTML = data.reviews.map(r => `
+      window.saveHospitalBeds = async function (id) {
+        const erVal = parseInt(
+          document.getElementById(`er-beds-${id}`).value,
+          10,
+        );
+        const icuVal = parseInt(
+          document.getElementById(`icu-beds-${id}`).value,
+          10,
+        );
+
+        try {
+          const res = await adminFetch(
+            `${API_BASE}/api/admin/hospitals/${id}`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                emergencyBedsAvailable: erVal,
+                icuAvailable: icuVal,
+              }),
+            },
+          );
+          const data = await res.json();
+          if (data.success) {
+            alert("Hospital bed counts updated successfully.");
+            loadStats();
+          }
+        } catch (e) {
+          alert("Failed to update hospital.");
+        }
+      };
+
+      // Load Reviews
+      async function loadReviews() {
+        const container = document.getElementById(
+          "reviews-moderation-container",
+        );
+        try {
+          const res = await fetch(`${API_BASE}/api/reviews`);
+          const data = await res.json();
+          if (data.success && Array.isArray(data.reviews)) {
+            if (data.reviews.length === 0) {
+              container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 theme-card rounded-2xl border">No reviews published yet.</div>`;
+              return;
+            }
+
+            container.innerHTML = data.reviews
+              .map(
+                (r) => `
             <div class="theme-card rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-slate-800 space-y-1.5">
               <div class="flex items-start justify-between gap-2">
                 <div>
                   <span class="text-xs font-bold text-slate-900 dark:text-white">${r.userName}</span>
                   <span class="text-[10px] text-slate-400 ml-1.5">• ${r.date}</span>
-                  <div class="text-amber-500 text-xs font-bold">★ ${r.rating} / 5 (${r.treatment || 'General'})</div>
+                  <div class="text-amber-500 text-xs font-bold">★ ${r.rating} / 5 (${r.treatment || "General"})</div>
                 </div>
 
                 <button onclick="deleteReview('${r.id}')" class="px-2.5 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500 hover:text-white border border-rose-500/30 text-rose-500 text-[11px] font-bold transition-all">
@@ -427,65 +604,76 @@
               <p class="text-xs text-slate-600 dark:text-slate-300 italic">"${r.comment}"</p>
               <div class="text-[10px] font-bold text-indigo-400">🏥 ${r.hospitalName}</div>
             </div>
-          `).join('');
+          `,
+              )
+              .join("");
+          }
+        } catch (err) {
+          container.innerHTML = `<div class="p-4 text-xs text-rose-500">Failed to load reviews.</div>`;
         }
-      } catch (err) {
-        container.innerHTML = `<div class="p-4 text-xs text-rose-500">Failed to load reviews.</div>`;
       }
-    }
 
-    window.deleteReview = async function(id) {
-      if (!confirm('Are you sure you want to delete this review?')) return;
-      try {
-        const res = await adminFetch(`${API_BASE}/api/admin/reviews/${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (data.success) {
-          loadReviews();
-          loadStats();
+      window.deleteReview = async function (id) {
+        if (!confirm("Are you sure you want to delete this review?")) return;
+        try {
+          const res = await adminFetch(`${API_BASE}/api/admin/reviews/${id}`, {
+            method: "DELETE",
+          });
+          const data = await res.json();
+          if (data.success) {
+            loadReviews();
+            loadStats();
+          }
+        } catch (e) {
+          alert("Could not delete review.");
         }
-      } catch (e) {
-        alert('Could not delete review.');
-      }
-    };
+      };
 
-    // Load Citizens
-    async function loadCitizens() {
-      const container = document.getElementById('citizens-container');
-      try {
-        const res = await adminFetch(`${API_BASE}/api/admin/users`);
-        const data = await res.json();
-        if (data.success && Array.isArray(data.users)) {
-          document.getElementById('citizens-count-text').textContent = `${data.users.length} Citizens Registered`;
-          container.innerHTML = data.users.map(u => `
+      // Load Citizens
+      async function loadCitizens() {
+        const container = document.getElementById("citizens-container");
+        try {
+          const res = await adminFetch(`${API_BASE}/api/admin/users`);
+          const data = await res.json();
+          if (data.success && Array.isArray(data.users)) {
+            document.getElementById("citizens-count-text").textContent =
+              `${data.users.length} Citizens Registered`;
+            container.innerHTML = data.users
+              .map(
+                (u) => `
             <div class="theme-card rounded-2xl p-3 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
               <div>
                 <strong class="text-slate-900 dark:text-white block">${u.name}</strong>
                 <span class="text-slate-400 text-[10px]">${u.email} • ${u.phone}</span>
               </div>
               <div class="text-right">
-                <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold text-[10px]">${u.city || 'Punjab'}</span>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold text-[10px]">${u.city || "Punjab"}</span>
               </div>
             </div>
-          `).join('');
+          `,
+              )
+              .join("");
+          }
+        } catch (err) {
+          container.innerHTML = `<div class="p-4 text-xs text-rose-500">Failed to load citizens.</div>`;
         }
-      } catch (err) {
-        container.innerHTML = `<div class="p-4 text-xs text-rose-500">Failed to load citizens.</div>`;
       }
-    }
 
-    document.getElementById('refresh-emergencies-btn').addEventListener('click', loadEmergencies);
+      document
+        .getElementById("refresh-emergencies-btn")
+        .addEventListener("click", loadEmergencies);
 
-    // Reveal the dashboard only after the server confirms site owner access.
-    verifyOwner().then(isOwner => {
-      if (!isOwner) return window.location.replace('index.html');
-      document.body.style.visibility = 'visible';
-      loadStats();
-      loadEmergencies();
-      loadHospitals();
-      loadReviews();
-      loadCitizens();
-    });
-    lucide.createIcons();
-  </script>
-</body>
+      // Reveal the dashboard only after the server confirms site owner access.
+      verifyOwner().then((isOwner) => {
+        if (!isOwner) return window.location.replace("index.html");
+        document.body.style.visibility = "visible";
+        loadStats();
+        loadEmergencies();
+        loadHospitals();
+        loadReviews();
+        loadCitizens();
+      });
+      lucide.createIcons();
+    </script>
+  </body>
 </html>

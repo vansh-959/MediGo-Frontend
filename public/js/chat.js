@@ -2,146 +2,146 @@
 // Multi-turn context, Voice Recognition, Dual Theme (Light/Dark) & Hospital Cards
 
 document.addEventListener('DOMContentLoaded', () => {
-  const API_BASE = window.location.port === '5501' ? 'http://localhost:3000' : '';
-  const chatDrawer = document.getElementById('chat-drawer');
-  const openChatBtn = document.getElementById('floating-chat-trigger');
-  const closeChatBtn = document.getElementById('close-chat-btn');
-  const chatForm = document.getElementById('chat-form');
-  const chatInput = document.getElementById('chat-input');
-  const chatMessages = document.getElementById('chat-messages');
-  const chatMicBtn = document.getElementById('chat-mic-btn');
+            const API_BASE = window.MEDIGO_API_BASE;
+            const chatDrawer = document.getElementById('chat-drawer');
+            const openChatBtn = document.getElementById('floating-chat-trigger');
+            const closeChatBtn = document.getElementById('close-chat-btn');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatMicBtn = document.getElementById('chat-mic-btn');
 
-  // Maintain in-memory conversation history
-  const chatHistory = [];
+            // Maintain in-memory conversation history
+            const chatHistory = [];
 
-  if (!chatDrawer) return;
+            if (!chatDrawer) return;
 
-  // Toggle Drawer Open / Close
-  if (openChatBtn) {
-    openChatBtn.addEventListener('click', () => {
-      chatDrawer.classList.remove('translate-x-full');
-      if (chatInput) setTimeout(() => chatInput.focus(), 300);
-    });
-  }
+            // Toggle Drawer Open / Close
+            if (openChatBtn) {
+                openChatBtn.addEventListener('click', () => {
+                    chatDrawer.classList.remove('translate-x-full');
+                    if (chatInput) setTimeout(() => chatInput.focus(), 300);
+                });
+            }
 
-  if (closeChatBtn) {
-    closeChatBtn.addEventListener('click', () => {
-      chatDrawer.classList.add('translate-x-full');
-    });
-  }
+            if (closeChatBtn) {
+                closeChatBtn.addEventListener('click', () => {
+                    chatDrawer.classList.add('translate-x-full');
+                });
+            }
 
-  // Quick Prompt Pills
-  document.querySelectorAll('.chat-prompt-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const text = pill.textContent.trim();
-      if (chatInput) {
-        chatInput.value = text;
-        submitChatMessage(text);
-      }
-    });
-  });
+            // Quick Prompt Pills
+            document.querySelectorAll('.chat-prompt-pill').forEach(pill => {
+                pill.addEventListener('click', () => {
+                    const text = pill.textContent.trim();
+                    if (chatInput) {
+                        chatInput.value = text;
+                        submitChatMessage(text);
+                    }
+                });
+            });
 
-  // Voice Speech-To-Text Recognition in Chat
-  if (chatMicBtn) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      const currentLang = localStorage.getItem('medadvisor_lang') || 'en';
-      recognition.lang = currentLang === 'hi' ? 'hi-IN' : (currentLang === 'pa' ? 'pa-IN' : 'en-IN');
-      recognition.interimResults = false;
+            // Voice Speech-To-Text Recognition in Chat
+            if (chatMicBtn) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    const recognition = new SpeechRecognition();
+                    const currentLang = localStorage.getItem('medadvisor_lang') || 'en';
+                    recognition.lang = currentLang === 'hi' ? 'hi-IN' : (currentLang === 'pa' ? 'pa-IN' : 'en-IN');
+                    recognition.interimResults = false;
 
-      chatMicBtn.addEventListener('click', () => {
-        chatMicBtn.classList.add('bg-rose-500', 'text-white', 'animate-pulse');
-        recognition.start();
-      });
+                    chatMicBtn.addEventListener('click', () => {
+                        chatMicBtn.classList.add('bg-rose-500', 'text-white', 'animate-pulse');
+                        recognition.start();
+                    });
 
-      recognition.onresult = (e) => {
-        const transcript = e.results[0][0].transcript;
-        if (chatInput) {
-          chatInput.value = transcript;
-          submitChatMessage(transcript);
-        }
-      };
+                    recognition.onresult = (e) => {
+                        const transcript = e.results[0][0].transcript;
+                        if (chatInput) {
+                            chatInput.value = transcript;
+                            submitChatMessage(transcript);
+                        }
+                    };
 
-      recognition.onend = () => {
-        chatMicBtn.classList.remove('bg-rose-500', 'text-white', 'animate-pulse');
-      };
-    } else {
-      chatMicBtn.style.display = 'none';
-    }
-  }
+                    recognition.onend = () => {
+                        chatMicBtn.classList.remove('bg-rose-500', 'text-white', 'animate-pulse');
+                    };
+                } else {
+                    chatMicBtn.style.display = 'none';
+                }
+            }
 
-  // Chat Form Submit
-  if (chatForm) {
-    chatForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const message = chatInput?.value.trim();
-      if (message) {
-        submitChatMessage(message);
-      }
-    });
-  }
+            // Chat Form Submit
+            if (chatForm) {
+                chatForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const message = chatInput ? .value.trim();
+                    if (message) {
+                        submitChatMessage(message);
+                    }
+                });
+            }
 
-  async function submitChatMessage(message) {
-    if (!message) return;
+            async function submitChatMessage(message) {
+                if (!message) return;
 
-    // Render User Message
-    appendMessage('user', message);
-    if (chatInput) chatInput.value = '';
+                // Render User Message
+                appendMessage('user', message);
+                if (chatInput) chatInput.value = '';
 
-    // Add to history
-    chatHistory.push({ role: 'user', content: message });
+                // Add to history
+                chatHistory.push({ role: 'user', content: message });
 
-    // Show Typing Indicator
-    const typingId = appendTypingIndicator();
+                // Show Typing Indicator
+                const typingId = appendTypingIndicator();
 
-    try {
-      const city = appState?.detectedLocationName || '';
-      const location = appState?.userCoords || null;
+                try {
+                    const city = appState ? .detectedLocationName || '';
+                    const location = appState ? .userCoords || null;
 
-      const res = await fetch(`${API_BASE}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message,
-          city,
-          location,
-          history: chatHistory.slice(-6)
-        })
-      });
+                    const res = await fetch(`${API_BASE}/api/chat`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message,
+                            city,
+                            location,
+                            history: chatHistory.slice(-6)
+                        })
+                    });
 
-      const data = await res.json();
-      removeTypingIndicator(typingId);
+                    const data = await res.json();
+                    removeTypingIndicator(typingId);
 
-      if (data.success && data.reply) {
-        chatHistory.push({ role: 'model', content: data.reply });
-        appendMessage('ai', data.reply, data);
-      } else {
-        appendMessage('ai', 'I couldn’t get a response just now. Please try again in a moment.');
-      }
-    } catch (err) {
-      removeTypingIndicator(typingId);
-      appendMessage('ai', 'I can’t reach the assistant right now. Please try again in a moment.');
-    }
-  }
+                    if (data.success && data.reply) {
+                        chatHistory.push({ role: 'model', content: data.reply });
+                        appendMessage('ai', data.reply, data);
+                    } else {
+                        appendMessage('ai', 'I couldn’t get a response just now. Please try again in a moment.');
+                    }
+                } catch (err) {
+                    removeTypingIndicator(typingId);
+                    appendMessage('ai', 'I can’t reach the assistant right now. Please try again in a moment.');
+                }
+            }
 
-  function appendMessage(role, text, data = null) {
-    if (!chatMessages) return;
+            function appendMessage(role, text, data = null) {
+                if (!chatMessages) return;
 
-    const msgDiv = document.createElement('div');
-    msgDiv.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+                const msgDiv = document.createElement('div');
+                msgDiv.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
 
-    // Format basic bolding and line breaks
-    let formattedText = escapeHtml(text)
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n\n/g, '<br/><br/>')
-      .replace(/\n•/g, '<br/>•')
-      .replace(/\n/g, '<br/>');
+                // Format basic bolding and line breaks
+                let formattedText = escapeHtml(text)
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n\n/g, '<br/><br/>')
+                    .replace(/\n•/g, '<br/>•')
+                    .replace(/\n/g, '<br/>');
 
-    // Recommendation hospital cards snippet
-    let recommendationsHtml = '';
-    if (data && data.recommendations && data.recommendations.length > 0) {
-      recommendationsHtml = `
+                // Recommendation hospital cards snippet
+                let recommendationsHtml = '';
+                if (data && data.recommendations && data.recommendations.length > 0) {
+                    recommendationsHtml = `
         <div class="mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
           <div class="text-[10px] uppercase font-extrabold tracking-wider text-sky-600 dark:text-sky-400 flex items-center justify-between">
             <span>Matching Verified Hospitals (${escapeHtml(data.triage?.specialty || 'General')})</span>

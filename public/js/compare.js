@@ -5,15 +5,15 @@ let compareState = {
   needIcu: false,
 };
 
-const API_BASE = window.location.port === '5501' ? 'http://localhost:3000' : '';
+const API_BASE = window.MEDIGO_API_BASE;
 
 function formatMoney(value) {
   const num = Number(value) || 0;
-  return '₹' + num.toLocaleString('en-IN');
+  return "₹" + num.toLocaleString("en-IN");
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const savedCompare = localStorage.getItem('med_compare_ids');
+document.addEventListener("DOMContentLoaded", async () => {
+  const savedCompare = localStorage.getItem("med_compare_ids");
   const ids = savedCompare ? JSON.parse(savedCompare) : [];
 
   if (ids.length === 0) {
@@ -21,18 +21,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  const savedHospitals = JSON.parse(localStorage.getItem('med_compare_hospitals') || '{}');
-  let list = ids.map(id => savedHospitals[id]).filter(Boolean);
+  const savedHospitals = JSON.parse(
+    localStorage.getItem("med_compare_hospitals") || "{}",
+  );
+  let list = ids.map((id) => savedHospitals[id]).filter(Boolean);
 
   if (list.length === 0) {
     try {
       const res = await fetch(`${API_BASE}/api/hospitals`);
       const data = await res.json();
       if (data.success && data.hospitals) {
-        list = data.hospitals.filter(h => ids.includes(h.id));
+        list = data.hospitals.filter((h) => ids.includes(h.id));
       }
     } catch (e) {
-      console.warn('Could not fetch hospitals:', e);
+      console.warn("Could not fetch hospitals:", e);
     }
   }
 
@@ -45,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function renderEmptyState() {
-  const container = document.getElementById('compare-container');
+  const container = document.getElementById("compare-container");
   if (!container) return;
 
   container.innerHTML = `
@@ -62,7 +64,7 @@ function renderEmptyState() {
 }
 
 function renderComparisonDashboard() {
-  const container = document.getElementById('compare-container');
+  const container = document.getElementById("compare-container");
   if (!container) return;
 
   const list = compareState.hospitals;
@@ -87,7 +89,7 @@ function renderComparisonDashboard() {
             </div>
 
             <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-              <input type="checkbox" id="need-icu-checkbox" ${compareState.needIcu ? 'checked' : ''} class="w-4 h-4 rounded text-sky-500 bg-slate-900 border-slate-700"/>
+              <input type="checkbox" id="need-icu-checkbox" ${compareState.needIcu ? "checked" : ""} class="w-4 h-4 rounded text-sky-500 bg-slate-900 border-slate-700"/>
               <span>Requires ICU Care</span>
             </label>
           </div>
@@ -96,9 +98,14 @@ function renderComparisonDashboard() {
 
       <!-- Comparison Cards Grid (Mobile Responsive) -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${Math.min(list.length, 4)} gap-4 sm:gap-6">
-        ${list.map(h => {
-          const projectedStayCost = calculateProjectedCost(h, compareState.stayDays, compareState.needIcu);
-          return `
+        ${list
+          .map((h) => {
+            const projectedStayCost = calculateProjectedCost(
+              h,
+              compareState.stayDays,
+              compareState.needIcu,
+            );
+            return `
             <article class="glass-card rounded-3xl p-5 border border-slate-800 flex flex-col justify-between shadow-xl">
               <div>
                 <div class="flex items-start justify-between gap-2 mb-2">
@@ -109,7 +116,7 @@ function renderComparisonDashboard() {
                 </div>
 
                 <div class="text-xs text-slate-400 mb-4 flex items-center justify-between">
-                  <span>${h.location || h.city || 'Regional Center'}</span>
+                  <span>${h.location || h.city || "Regional Center"}</span>
                   <span class="text-amber-300 font-bold">★ ${h.rating || 4.7}</span>
                 </div>
 
@@ -154,24 +161,38 @@ function renderComparisonDashboard() {
 
                   <div class="flex justify-between py-1 border-b border-slate-800/60">
                     <span class="text-slate-400">Distance & Commute:</span>
-                    <strong class="text-slate-200">${h.distanceKm ? `${h.distanceKm} km (~${h.commuteDuration || '15 mins'})` : 'Local Area'}</strong>
+                    <strong class="text-slate-200">${h.distanceKm ? `${h.distanceKm} km (~${h.commuteDuration || "15 mins"})` : "Local Area"}</strong>
                   </div>
 
                   <div class="pt-1">
                     <span class="text-slate-400 text-[11px] block mb-1 font-bold">Government Empanelment:</span>
                     <div class="flex flex-wrap gap-1">
-                      ${(h.insuranceAccepted || ['Ayushman Bharat PM-JAY', 'CGHS']).slice(0, 3).map(ins => `
+                      ${(
+                        h.insuranceAccepted || [
+                          "Ayushman Bharat PM-JAY",
+                          "CGHS",
+                        ]
+                      )
+                        .slice(0, 3)
+                        .map(
+                          (ins) => `
                         <span class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">${ins}</span>
-                      `).join('')}
+                      `,
+                        )
+                        .join("")}
                     </div>
                   </div>
 
                   <div class="pt-1">
                     <span class="text-slate-400 text-[11px] block mb-1 font-bold">Accreditations:</span>
                     <div class="flex flex-wrap gap-1">
-                      ${(h.accreditations || ['NABH']).map(acc => `
+                      ${(h.accreditations || ["NABH"])
+                        .map(
+                          (acc) => `
                         <span class="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${acc}</span>
-                      `).join('')}
+                      `,
+                        )
+                        .join("")}
                     </div>
                   </div>
                 </div>
@@ -182,13 +203,14 @@ function renderComparisonDashboard() {
                 <a href="tel:${h.phone}" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl text-center">
                   Call Hospital
                 </a>
-                <a href="${h.mapUrl || '#'}" target="_blank" rel="noopener" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs rounded-xl text-center">
+                <a href="${h.mapUrl || "#"}" target="_blank" rel="noopener" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs rounded-xl text-center">
                   Get Directions
                 </a>
               </div>
             </article>
           `;
-        }).join('')}
+          })
+          .join("")}
       </div>
 
     </div>
@@ -197,12 +219,12 @@ function renderComparisonDashboard() {
   lucide.createIcons();
 
   // Attach calculator event listeners
-  const slider = document.getElementById('stay-slider');
-  const icuCheck = document.getElementById('need-icu-checkbox');
-  const label = document.getElementById('stay-days-label');
+  const slider = document.getElementById("stay-slider");
+  const icuCheck = document.getElementById("need-icu-checkbox");
+  const label = document.getElementById("stay-days-label");
 
   if (slider) {
-    slider.addEventListener('input', (e) => {
+    slider.addEventListener("input", (e) => {
       compareState.stayDays = parseInt(e.target.value, 10);
       if (label) label.textContent = String(compareState.stayDays);
       renderComparisonDashboard();
@@ -210,7 +232,7 @@ function renderComparisonDashboard() {
   }
 
   if (icuCheck) {
-    icuCheck.addEventListener('change', (e) => {
+    icuCheck.addEventListener("change", (e) => {
       compareState.needIcu = e.target.checked;
       renderComparisonDashboard();
     });
@@ -222,24 +244,27 @@ function calculateProjectedCost(hospital, days, needIcu) {
   const icuDayRate = Number(hospital.avgIcuCostPerDay) || 4500;
   const generalWardDayRate = Math.round(icuDayRate * 0.35);
 
-  const roomCharges = needIcu
-    ? (days * icuDayRate)
-    : (days * generalWardDayRate);
+  const roomCharges = needIcu ? days * icuDayRate : days * generalWardDayRate;
 
-  const estimatedProcedures = Number(hospital.estimatedTreatmentCost?.min) || 12000;
+  const estimatedProcedures =
+    Number(hospital.estimatedTreatmentCost?.min) || 12000;
   return baseOpd + roomCharges + Math.round(estimatedProcedures * 0.4);
 }
 
 function removeCompareHospital(id) {
-  const savedIds = JSON.parse(localStorage.getItem('med_compare_ids') || '[]');
-  const newIds = savedIds.filter(item => item !== id);
-  localStorage.setItem('med_compare_ids', JSON.stringify(newIds));
+  const savedIds = JSON.parse(localStorage.getItem("med_compare_ids") || "[]");
+  const newIds = savedIds.filter((item) => item !== id);
+  localStorage.setItem("med_compare_ids", JSON.stringify(newIds));
 
-  const savedHospitals = JSON.parse(localStorage.getItem('med_compare_hospitals') || '{}');
+  const savedHospitals = JSON.parse(
+    localStorage.getItem("med_compare_hospitals") || "{}",
+  );
   delete savedHospitals[id];
-  localStorage.setItem('med_compare_hospitals', JSON.stringify(savedHospitals));
+  localStorage.setItem("med_compare_hospitals", JSON.stringify(savedHospitals));
 
-  compareState.hospitals = compareState.hospitals.filter(h => (h.id || h.placeId) !== id);
+  compareState.hospitals = compareState.hospitals.filter(
+    (h) => (h.id || h.placeId) !== id,
+  );
 
   if (compareState.hospitals.length === 0) {
     renderEmptyState();
