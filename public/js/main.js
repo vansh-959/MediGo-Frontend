@@ -3,6 +3,35 @@
 
 const API_BASE = window.MEDIGO_API_BASE;
 
+function loadSavedHospitalIds() {
+    try {
+        const ids = JSON.parse(localStorage.getItem('medigo_saved_hospitals') || '[]');
+        return Array.isArray(ids) ? ids : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function loadSavedHospitalRecords() {
+    try {
+        const records = JSON.parse(localStorage.getItem('medigo_saved_hospital_data') || '{}');
+        return records && typeof records === 'object' && !Array.isArray(records) ? records : {};
+    } catch {
+        return {};
+    }
+}
+
+function rememberSavedHospitalRecords(hospitals) {
+    let changed = false;
+    for (const hospital of hospitals || []) {
+        if (hospital?.id && appState.savedHospitalIds.has(hospital.id)) {
+            appState.savedHospitalRecords[hospital.id] = hospital;
+            changed = true;
+        }
+    }
+    if (changed) localStorage.setItem('medigo_saved_hospital_data', JSON.stringify(appState.savedHospitalRecords));
+}
+
 let appState = {
     hospitals: [],
     filteredHospitals: [],
@@ -12,9 +41,11 @@ let appState = {
     currentQuery: '',
     userCoords: null,
     detectedLocationName: 'Chandigarh Region',
+    savedHospitalRecords: loadSavedHospitalRecords(),
     currentIntent: null,
     comparedIds: new Set(),
     comparedMap: new Map(),
+    savedHospitalIds: new Set(loadSavedHospitalIds()),
     currentLanguage: 'en',
     currentTheme: 'dark',
     activeView: 'cards', // 'cards' | 'map'
@@ -31,12 +62,11 @@ const TRANSLATIONS = {
         heroBadge: "Government Healthcare Discovery & Hospital Recommendation",
         heroTitlePrefix: "Find the right hospital for",
         heroTitleHighlight: "your exact illness",
-        heroDescription: "Describe any disease, symptom, or budget in everyday words (Hindi, Punjabi, English). Our clinical AI matches nearest verified hospitals with live ICU beds & treatment costs.",
+        heroDescription: "Search the hospital directory by condition, location, or budget. Call hospitals to confirm current services and availability.",
         inputPlaceholder: "Type disease or condition, e.g. Kidney treatment under 2 lakh in Chandigarh...",
         searchBtn: "Find Best Nearest Hospitals",
         quickLabel: "Quick Condition Shortcuts (Tap to Search)",
         resultsTitle: "Recommended Nearest Hospitals",
-        accountBtn: "Sign In",
         locateText: "Using GPS Location",
         readySearch: "Ready to search across India",
     },
@@ -45,26 +75,37 @@ const TRANSLATIONS = {
         heroBadge: "सरकारी स्वास्थ्य सेवा खोज एवं अस्पताल सिफारिश प्रणाली",
         heroTitlePrefix: "अपनी बीमारी के लिए खोजें",
         heroTitleHighlight: "सबसे सही और नजदीकी अस्पताल",
-        heroDescription: "अपनी बीमारी, लक्षण या बजट किसी भी भाषा (हिन्दी, पंजाबी, अंग्रेजी) में लिखें। हमारा AI आपके रोग के आधार पर आईसीयू बेड, लागत और नजदीकी अस्पताल तुरंत दिखाएगा।",
+        heroDescription: "बीमारी, लोकेशन या बजट से अस्पतालों की सूची खोजें। मौजूदा सेवाओं और उपलब्धता की पुष्टि अस्पताल से करें।",
         inputPlaceholder: "अपनी बीमारी लिखें, जैसे: 2 लाख में चंडीगढ़ में पथरी का इलाज, दिल का दर्द...",
         searchBtn: "नजदीकी अस्पताल खोजें",
         quickLabel: "त्वरित रोग शॉर्टकट (टैप करके खोजें)",
         resultsTitle: "अनुशंसित नजदीकी अस्पताल",
-        accountBtn: "लॉगिन",
         locateText: "वर्तमान जीपीएस स्थान सक्रिय",
         readySearch: "पूरे भारत में खोजने के लिए तैयार",
+    },
+    'hi-Latn': {
+        headerSubtitle: "National Healthcare Discovery",
+        heroBadge: "Sarkari healthcare discovery aur hospital recommendation",
+        heroTitlePrefix: "Apni bimari ke liye khojein",
+        heroTitleHighlight: "sahi hospital",
+        heroDescription: "Bimari, location ya budget ke hisaab se hospital khojein. Jaane se pehle services aur availability confirm karein.",
+        inputPlaceholder: "Bimari likhein, jaise kidney treatment ya chest pain...",
+        searchBtn: "Paas ke hospitals khojein",
+        quickLabel: "Jaldi search ke liye bimari chunein",
+        resultsTitle: "Sujhaye gaye paas ke hospitals",
+        locateText: "GPS location use ho rahi hai",
+        readySearch: "Poore India mein search karne ke liye taiyar",
     },
     pa: {
         headerSubtitle: "ਰਾਸ਼ਟਰੀ ਸਿਹਤ ਸੇਵਾ ਖੋਜ ਪੋਰਟਲ",
         heroBadge: "ਸਰਕਾਰੀ ਸਿਹਤ ਸੇਵਾ ਖੋਜ ਅਤੇ ਹਸਪਤਾਲ ਸਿਫਾਰਸ਼ ਪ੍ਰਣਾਲੀ",
         heroTitlePrefix: "ਆਪਣੀ ਬਿਮਾਰੀ ਲਈ ਲੱਭੋ",
         heroTitleHighlight: "ਸਭ ਤੋਂ ਵਧੀਆ ਅਤੇ ਨੇੜਲਾ ਹਸਪਤਾਲ",
-        heroDescription: "ਕਿਸੇ ਵੀ ਬਿਮਾਰੀ ਜਾਂ ਲੱਛਣ ਨੂੰ ਆਮ ਬੋਲਚਾਲ (ਪੰਜਾਬੀ, ਹਿੰਦੀ, ਅੰਗਰੇਜ਼ੀ) ਵਿੱਚ ਲਿਖੋ। AI ਮਾਹਿਰ ਡਾਕਟਰ, ਖਰਚੇ ਅਤੇ ਖਾਲੀ ICU ਬੈੱਡਾਂ ਅਨੁਸਾਰ ਨੇੜਲੇ ਹਸਪਤਾਲ ਦਿਖਾਏਗਾ।",
+        heroDescription: "ਬਿਮਾਰੀ, ਥਾਂ ਜਾਂ ਬਜਟ ਨਾਲ ਹਸਪਤਾਲਾਂ ਦੀ ਸੂਚੀ ਖੋਜੋ। ਮੌਜੂਦਾ ਸੇਵਾਵਾਂ ਅਤੇ ਉਪਲਬਧਤਾ ਦੀ ਪੁਸ਼ਟੀ ਹਸਪਤਾਲ ਤੋਂ ਕਰੋ।",
         inputPlaceholder: "ਆਪਣੀ ਬਿਮਾਰੀ ਲਿਖੋ, ਜਿਵੇਂ: ਗੁਰਦੇ ਦੀ ਪੱਥਰੀ ਦਾ ਇਲਾਜ, ਦਿਲ ਦੀ ਬਿਮਾਰੀ...",
         searchBtn: "ਨੇੜਲੇ ਹਸਪਤਾਲ ਲੱਭੋ",
         quickLabel: "ਤੁਰੰਤ ਬਿਮਾਰੀ ਸ਼ਾਰਟਕੱਟ (ਟੈਪ ਕਰਕੇ ਲੱਭੋ)",
         resultsTitle: "ਸਿਫਾਰਸ਼ ਕੀਤੇ ਨੇੜਲੇ ਹਸਪਤਾਲ",
-        accountBtn: "ਲਾਗਇਨ",
         locateText: "ਮੌਜੂਦਾ GPS ਲੋਕੇਸ਼ਨ ਸਰਗਰਮ",
         readySearch: "ਪੂਰੇ ਦੇਸ਼ ਵਿੱਚ ਖੋਜ ਲਈ ਤਿਆਰ",
     }
@@ -75,13 +116,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedComparisons();
     initLanguage();
     initEventListeners();
-    checkAuthSession();
-    checkLoginToast();
     initReviewsModal();
+    if (location.hash === '#saved') document.querySelector('.filter-chip[data-filter="saved"]')?.click();
 
-    // Run a default discovery search on start
-    if (navigator.geolocation) triggerGeolocation();
-    else performDiseaseSearch('kidney treatment hospitals near me', false);
+    // Hospital search is started only after the visitor submits a query.
+});
+
+window.addEventListener('medigo:languagechange', (event) => {
+    appState.currentLanguage = event.detail?.language || window.MEDIGO_LANGUAGE || 'en';
+    if (appState.filteredHospitals.length) renderHospitalCards(appState.filteredHospitals);
+    const compareModal = document.getElementById('compare-modal');
+    if (compareModal && !compareModal.classList.contains('hidden')) renderCompareModal();
 });
 
 // =========================================================================
@@ -93,9 +138,7 @@ function initTheme() {
     if (saved === 'light' || saved === 'dark') {
         setTheme(saved, false);
     } else {
-        // Default to dark or system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        setTheme(prefersDark ? 'dark' : 'light', false);
+      setTheme('light', false);
     }
 
     const toggleBtn = document.getElementById('theme-toggle-btn');
@@ -120,7 +163,7 @@ function setTheme(theme, save = true) {
         root.classList.remove('dark');
     }
 
-    lucide.createIcons();
+    window.lucide?.createIcons?.();
 }
 
 // =========================================================================
@@ -135,7 +178,7 @@ function initEventListeners() {
             e.preventDefault();
             const input = document.getElementById('disease-search-input');
             const query = input?.value.trim();
-            if (query) performDiseaseSearch(query, true);
+            if (query) openResultsPage(query, document.getElementById('city-override-input')?.value.trim() || '', appState.userCoords);
         });
     }
 
@@ -146,8 +189,7 @@ function initEventListeners() {
             const input = document.getElementById('disease-search-input');
             if (input && diseaseQuery) {
                 input.value = diseaseQuery;
-                performDiseaseSearch(diseaseQuery, true);
-                window.scrollTo({ top: 320, behavior: 'smooth' });
+                openResultsPage(diseaseQuery, document.getElementById('city-override-input')?.value.trim() || '', appState.userCoords);
             }
         });
     });
@@ -164,6 +206,14 @@ function initEventListeners() {
             appState.selectedFilter = chip.getAttribute('data-filter') || 'all';
             applyFiltersAndSort();
         });
+    });
+
+    document.getElementById('compare-selected-btn')?.addEventListener('click', () => {
+        if (appState.comparedIds.size < 2) {
+            showNotificationToast('Select 2 hospitals', 'Tap Compare on at least two hospital cards first.', 'error');
+            return;
+        }
+        window.location.href = 'compare.html';
     });
 
     // Budget Cap Checkboxes
@@ -208,6 +258,7 @@ function initEventListeners() {
     const mobNavDiscover = document.getElementById('mob-nav-discover');
     const mobNavMap = document.getElementById('mob-nav-map');
     const mobNavCompare = document.getElementById('mob-nav-compare');
+    const mobNavReportReader = document.getElementById('mob-nav-report-reader');
     const mobNavChat = document.getElementById('mob-nav-chat');
 
     if (mobNavDiscover) {
@@ -219,16 +270,39 @@ function initEventListeners() {
     }
 
     if (mobNavMap) {
-        mobNavMap.addEventListener('click', () => {
+        mobNavMap.addEventListener('click', async () => {
             switchView('map');
+            if (!appState.hospitals.length) {
+                const mapStatus = document.getElementById('map-status');
+                if (mapStatus) mapStatus.textContent = 'Loading hospitals…';
+                try {
+                    const city = document.getElementById('city-override-input')?.value.trim() || '';
+                    const directory = await searchPublicHospitalDirectory('', city, appState.userCoords);
+                    appState.hospitals = directory.hospitals;
+                    rememberSavedHospitalRecords(appState.hospitals);
+                    appState.detectedLocationName = city || 'All listed locations';
+                    appState.selectedFilter = 'all';
+                    document.querySelector('.filter-chip[data-filter="all"]')?.click();
+                } catch (error) {
+                    if (mapStatus) mapStatus.textContent = 'Hospitals could not be loaded. Check your connection and try again.';
+                }
+            }
+            document.getElementById('results-map-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             updateMobNavActive('mob-nav-map');
         });
     }
 
     if (mobNavCompare) {
         mobNavCompare.addEventListener('click', () => {
-            renderCompareModal();
-            document.getElementById('compare-modal')?.classList.remove('hidden');
+            location.href = 'compare.html';
+        });
+    }
+
+    if (mobNavReportReader) {
+        mobNavReportReader.addEventListener('click', () => {
+            document.getElementById('chat-drawer')?.classList.add('translate-x-full');
+            document.getElementById('report-reader')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            updateMobNavActive('mob-nav-report-reader');
         });
     }
 
@@ -315,7 +389,7 @@ function initEventListeners() {
 }
 
 function updateMobNavActive(activeId) {
-    const ids = ['mob-nav-discover', 'mob-nav-map', 'mob-nav-compare', 'mob-nav-chat'];
+    const ids = ['mob-nav-discover', 'mob-nav-map', 'mob-nav-compare', 'mob-nav-report-reader', 'mob-nav-chat'];
     ids.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -365,10 +439,12 @@ function initLanguage() {
 }
 
 function switchLanguage(langCode, save = true) {
-    appState.currentLanguage = langCode;
-    if (save) localStorage.setItem('medadvisor_lang', langCode);
+    const selectedLanguage = ['en', 'hi', 'hi-Latn', 'pa'].includes(langCode) ? langCode : 'en';
+    appState.currentLanguage = selectedLanguage;
+    if (save) localStorage.setItem('medadvisor_lang', selectedLanguage);
+    window.medigoSetLanguage?.(selectedLanguage);
 
-    const t = TRANSLATIONS[langCode] || TRANSLATIONS.en;
+    const t = TRANSLATIONS[selectedLanguage] || TRANSLATIONS.en;
 
     const setT = (id, text) => {
         const el = document.getElementById(id);
@@ -383,13 +459,12 @@ function switchLanguage(langCode, save = true) {
     setT('search-btn-label', t.searchBtn);
     setT('quick-symptoms-label', t.quickLabel);
     setT('results-header-title', t.resultsTitle);
-    setT('account-btn-text', t.accountBtn);
 
     const searchInput = document.getElementById('disease-search-input');
-    if (searchInput) searchInput.placeholder = t.inputPlaceholder;
+    if (searchInput) searchInput.placeholder = window.medigoText?.('searchPlaceholder') || t.inputPlaceholder;
 
     const locationText = document.getElementById('current-location-text');
-    if (locationText && !appState.userCoords) locationText.textContent = t.readySearch;
+    if (locationText && !appState.userCoords) locationText.textContent = window.medigoText?.('hospitalsShown') || t.readySearch;
 }
 
 // =========================================================================
@@ -404,7 +479,7 @@ function startVoiceRecognition() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = appState.currentLanguage === 'hi' ? 'hi-IN' : (appState.currentLanguage === 'pa' ? 'pa-IN' : 'en-IN');
+    recognition.lang = appState.currentLanguage === 'hi' || appState.currentLanguage === 'hi-Latn' ? 'hi-IN' : (appState.currentLanguage === 'pa' ? 'pa-IN' : 'en-IN');
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -423,7 +498,7 @@ function startVoiceRecognition() {
         const input = document.getElementById('disease-search-input');
         if (input) {
             input.value = transcript;
-            performDiseaseSearch(transcript, true);
+            openResultsPage(transcript, document.getElementById('city-override-input')?.value.trim() || '', appState.userCoords);
         }
     };
 
@@ -441,6 +516,16 @@ function startVoiceRecognition() {
     };
 
     recognition.start();
+}
+
+function openResultsPage(query, city = "", coords = null) {
+    const params = new URLSearchParams({ q: query });
+    if (city) params.set("city", city);
+    if (!city && coords && Number.isFinite(Number(coords.lat)) && Number.isFinite(Number(coords.lon ?? coords.lng))) {
+        params.set("lat", String(coords.lat));
+        params.set("lng", String(coords.lon ?? coords.lng));
+    }
+    window.location.href = `results.html?${params.toString()}`;
 }
 
 // =========================================================================
@@ -474,15 +559,17 @@ function triggerGeolocation() {
             }
 
             const input = document.getElementById('disease-search-input');
-            const query = input?.value.trim() || 'hospitals near me';
-            performDiseaseSearch(query, true);
+            const query = input?.value.trim();
+            if (!query) {
+                if (locText) locText.textContent = 'Location found. Enter a condition, then search nearby hospitals.';
+                return;
+            }
+            openResultsPage(query, document.getElementById('city-override-input')?.value.trim() || '', appState.userCoords);
         },
         (err) => {
             console.warn('Geolocation denied:', err.message);
             if (locateBtn) locateBtn.classList.remove('animate-spin');
-            if (locText) locText.textContent = 'GPS unavailable. Enter a city or region to search nearby hospitals.';
-            const input = document.getElementById('disease-search-input');
-            performDiseaseSearch(input?.value.trim() || 'kidney treatment hospitals near me', false);
+            if (locText) locText.textContent = 'GPS unavailable. Enter a city name to search there, or allow location access and try again.';
         }, { enableHighAccuracy: true, timeout: 8000 }
     );
 }
@@ -490,6 +577,49 @@ function triggerGeolocation() {
 // =========================================================================
 // DISEASE SEARCH & AI ENTITY EXTRACTION
 // =========================================================================
+
+function specialtyForDirectorySearch(query) {
+    const text = String(query || '').toLowerCase();
+    const rules = [
+        [/cancer|tumou?r|oncolog/, 'Oncology'],
+        [/heart|cardiac|chest pain|bypass/, 'Cardiology'],
+        [/kidney|renal|dialysis/, 'Nephrology'], [/stone|urine|prostate/, 'Urology'],
+        [/bone|fracture|knee|joint|orthop/, 'Orthopedics'],
+        [/brain|stroke|nerve|neurolog/, 'Neurology'],
+        [/child|baby|paediatric|pediatric/, 'Pediatrics'],
+        [/lung|breath|asthma|cough/, 'Pulmonology'],
+        [/stomach|appendix|liver|gastro/, 'Gastroenterology'],
+        [/skin|rash|dermat/, 'Dermatology'], [/eye|vision|ophthalm/, 'Ophthalmology']
+    ];
+    return rules.find(([pattern]) => pattern.test(text))?.[1] || 'General Medicine';
+}
+
+async function searchPublicHospitalDirectory(query, city, coords) {
+    const params = new URLSearchParams();
+    if (city) params.set('city', city);
+    const response = await fetch(`${API_BASE}/api/hospitals${params.size ? `?${params}` : ''}`, { headers: { Accept: 'application/json' } });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error('Hospital directory is temporarily unavailable. Please try again.');
+    const specialty = specialtyForDirectorySearch(query);
+    let hospitals = (data.hospitals || []).filter((hospital) => {
+        const departments = (hospital.specialties || []).join(' ').toLowerCase();
+        return specialty === 'General Medicine' || departments.includes(specialty.toLowerCase());
+    });
+    if (!hospitals.length && specialty !== 'General Medicine') hospitals = data.hospitals || [];
+    if (coords && Number.isFinite(Number(coords.lat)) && Number.isFinite(Number(coords.lon ?? coords.lng))) {
+        const distance = (hospital) => {
+            const lat = Number(hospital.lat ?? hospital.coordinates?.lat);
+            const lon = Number(hospital.lon ?? hospital.lng ?? hospital.coordinates?.lng);
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return Infinity;
+            const rad = (n) => n * Math.PI / 180;
+            const dLat = rad(lat - Number(coords.lat)), dLon = rad(lon - Number(coords.lon ?? coords.lng));
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(Number(coords.lat))) * Math.cos(rad(lat)) * Math.sin(dLon / 2) ** 2;
+            return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        };
+        hospitals = hospitals.map((hospital) => ({ ...hospital, distanceKm: distance(hospital) })).sort((a, b) => a.distanceKm - b.distanceKm);
+    } else hospitals.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    return { hospitals, specialty };
+}
 
 async function performDiseaseSearch(query, scrollResults = false) {
     if (!query || !query.trim()) return;
@@ -504,7 +634,7 @@ async function performDiseaseSearch(query, scrollResults = false) {
     if (searchSubmitBtn) {
         searchSubmitBtn.disabled = true;
         searchSubmitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Analyzing Clinical Intent...`;
-        lucide.createIcons();
+        window.lucide?.createIcons?.();
     }
 
     const container = document.getElementById('hospitals-grid');
@@ -518,13 +648,13 @@ async function performDiseaseSearch(query, scrollResults = false) {
         <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">Extracting disease entities, calculating commute times, and ranking live ICU beds for "${cleanQuery}"...</p>
       </div>
     `;
-        lucide.createIcons();
+        window.lucide?.createIcons?.();
     }
 
     try {
         const res = await fetch(`${API_BASE}/api/hospitals/search`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('medigo_auth_token') || ''}` },
             body: JSON.stringify({
                 query: cleanQuery,
                 city: cityOverride,
@@ -539,6 +669,7 @@ async function performDiseaseSearch(query, scrollResults = false) {
         }
 
         appState.hospitals = data.hospitals || [];
+        rememberSavedHospitalRecords(appState.hospitals);
         appState.currentIntent = data.intent || null;
         appState.detectedLocationName = data.searchLocation?.name || 'Local Region';
 
@@ -555,23 +686,37 @@ async function performDiseaseSearch(query, scrollResults = false) {
 
     } catch (err) {
         console.error('Search error:', err);
+        try {
+            const directory = await searchPublicHospitalDirectory(cleanQuery, cityOverride, cityOverride ? null : appState.userCoords);
+            appState.hospitals = directory.hospitals;
+            rememberSavedHospitalRecords(appState.hospitals);
+            appState.currentIntent = { disease: cleanQuery, specialty: directory.specialty, urgency: 'Routine', explainability: 'Hospitals are matched using their listed departments and your selected area.' };
+            appState.detectedLocationName = cityOverride || 'Nearby';
+            renderAIIntentSection(appState.currentIntent, { name: appState.detectedLocationName });
+            applyFiltersAndSort();
+            document.getElementById('results-map-section')?.classList.remove('hidden');
+            initOrUpdateMap();
+            return;
+        } catch (directoryError) {
+            console.warn('Public hospital directory fallback failed:', directoryError);
+        }
         if (container) {
             container.innerHTML = `
         <div class="col-span-full py-12 text-center theme-card rounded-3xl p-6 border">
           <i data-lucide="alert-circle" class="w-12 h-12 text-rose-500 mx-auto mb-3"></i>
           <h4 class="text-base font-bold text-slate-900 dark:text-white mb-1">Search Encountered an Issue</h4>
-          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-4">${escapeHtml(err.message || 'Please check your connection and try again.')}</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-4">Hospitals could not be loaded right now. Please check your connection and try again.</p>
           <button onclick="performDiseaseSearch('${escapeHtml(cleanQuery)}', true)" class="px-4 py-2 bg-sky-500 text-white font-bold text-xs rounded-xl">Try Again</button>
         </div>
       `;
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
     } finally {
         if (searchSubmitBtn) {
             searchSubmitBtn.disabled = false;
             const t = TRANSLATIONS[appState.currentLanguage] || TRANSLATIONS.en;
             searchSubmitBtn.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i> <span>${t.searchBtn}</span>`;
-            lucide.createIcons();
+            window.lucide?.createIcons?.();
         }
     }
 }
@@ -625,7 +770,9 @@ function renderAIIntentSection(intent, locationInfo) {
 // =========================================================================
 
 function applyFiltersAndSort() {
-    let list = [...appState.hospitals];
+    let list = appState.selectedFilter === 'saved'
+        ? Object.values(appState.savedHospitalRecords).filter((hospital) => appState.savedHospitalIds.has(hospital.id))
+        : [...appState.hospitals];
 
     // Apply Filter Chips
     if (appState.selectedFilter === 'emergency') {
@@ -641,7 +788,7 @@ function applyFiltersAndSort() {
     }
 
     // Apply Budget Cap Checkboxes
-    if (appState.selectedBudgetCaps && appState.selectedBudgetCaps.size > 0) {
+    if (appState.selectedFilter !== 'saved' && appState.selectedBudgetCaps && appState.selectedBudgetCaps.size > 0) {
         list = list.filter(h => {
             const minCost = h.estimatedTreatmentCost?.min ?? h.avgConsultationCost ?? 0;
             const maxCost = h.estimatedTreatmentCost?.max ?? minCost;
@@ -661,7 +808,7 @@ function applyFiltersAndSort() {
     if (appState.sortBy === 'distance') {
         list.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
     } else if (appState.sortBy === 'cost') {
-        list.sort((a, b) => (a.estimatedTreatmentCost.min ?? 999999) - (b.estimatedTreatmentCost.min ?? 999999));
+        list.sort((a, b) => (a.estimatedTreatmentCost?.min ?? 999999) - (b.estimatedTreatmentCost?.min ?? 999999));
     } else if (appState.sortBy === 'beds') {
         list.sort((a, b) => (b.icuAvailable ?? 0) - (a.icuAvailable ?? 0));
     } else if (appState.sortBy === 'rating') {
@@ -676,6 +823,10 @@ function applyFiltersAndSort() {
     if (badge) badge.textContent = String(list.length);
 
     renderHospitalCards(list);
+    const mapSection = document.getElementById('results-map-section');
+    if (mapSection && !mapSection.classList.contains('hidden') && window.L) {
+        initOrUpdateMap();
+    }
 }
 
 // =========================================================================
@@ -685,24 +836,27 @@ function applyFiltersAndSort() {
 function renderHospitalCards(hospitals) {
     const container = document.getElementById('hospitals-grid');
     if (!container) return;
+    const t = (key) => window.medigoText?.(key) || key;
 
     if (hospitals.length === 0) {
+        const isSavedView = appState.selectedFilter === 'saved';
         container.innerHTML = `
       <div class="col-span-full py-16 text-center theme-card rounded-3xl p-8 border">
-        <i data-lucide="search-x" class="w-16 h-16 mx-auto text-slate-400 mb-3 animate-bounce"></i>
-        <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-1">No Hospitals Matched Active Filters</h4>
-        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">Try selecting "All Matches" or adjusting your search term.</p>
-        <button onclick="resetFilters()" class="px-4 py-2 bg-sky-500 text-white font-bold text-xs rounded-xl shadow-sm">Reset Filters</button>
+        <i data-lucide="${isSavedView ? 'heart' : 'search-x'}" class="w-16 h-16 mx-auto text-slate-400 mb-3"></i>
+        <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-1">${isSavedView ? t('noSavedHospitals') : t('noFilteredHospitals')}</h4>
+        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-4">${isSavedView ? t('saveHospitalHint') : t('adjustFilters')}</p>
+        <button onclick="resetFilters()" class="px-4 py-2 bg-sky-500 text-white font-bold text-xs rounded-xl shadow-sm">${isSavedView ? t('browseHospitals') : t('resetFilters')}</button>
       </div>
     `;
-        lucide.createIcons();
+        window.lucide?.createIcons?.();
         return;
     }
 
     container.innerHTML = hospitals.map(h => {
         const isCompared = appState.comparedIds.has(h.id);
+        const isSaved = appState.savedHospitalIds.has(h.id);
         const costMin = formatCurrency(h.estimatedTreatmentCost?.min);
-        const distanceDisplay = h.distanceKm != null ? `${h.distanceKm} km` : 'Near you';
+        const distanceDisplay = h.distanceKm != null ? `${h.distanceKm} km` : t('nearYou');
         const commute = h.commuteDuration || `${Math.max(8, Math.round((h.distanceKm || 5) * 2.2 + 4))} mins`;
 
         // Accreditations Badges
@@ -714,7 +868,7 @@ function renderHospitalCards(hospitals) {
 
         return `
       <article class="theme-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between border ${isCompared ? 'theme-card-selected' : ''}" data-id="${escapeHtml(h.id)}">
-        
+        ${h.image && /^https:\/\//i.test(h.image) ? `<img src="${escapeHtml(h.image)}" alt="${escapeHtml(h.name)}" class="mb-3 h-40 w-full rounded-2xl object-cover" loading="lazy" onerror="this.hidden=true">` : `<div class="mb-3 flex h-40 w-full items-center justify-center rounded-2xl bg-sky-50 text-4xl" role="img" aria-label="${escapeHtml(h.name)}">🏥</div>`}
         <!-- Header: Name, Rating & Type -->
         <div>
           <div class="flex items-start justify-between gap-2.5 mb-2">
@@ -727,10 +881,13 @@ function renderHospitalCards(hospitals) {
               </p>
             </div>
 
-            <!-- Rating Badge -->
-            <div class="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold text-xs">
+            <!-- Rating and save controls -->
+            <div class="flex shrink-0 items-center gap-1.5">
+              <button type="button" title="${isSaved ? t('removeSaved') : t('save')}" aria-label="${isSaved ? t('removeSaved') : t('save')}" onclick="toggleSavedHospital('${escapeHtml(h.id)}')" class="rounded-xl border px-2.5 py-1 text-xs font-bold ${isSaved ? 'border-rose-300 bg-rose-50 text-rose-600' : 'border-slate-200 text-slate-600'}">${isSaved ? `♥ ${t('saved')}` : `♡ ${t('save')}`}</button>
+            <div class="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold text-xs">
               <span>★</span>
               <span>${escapeHtml(h.rating)}</span>
+            </div>
             </div>
           </div>
 
@@ -741,28 +898,28 @@ function renderHospitalCards(hospitals) {
             </span>
             <span class="text-slate-300 dark:text-slate-600">•</span>
             <span class="flex items-center gap-1">
-              <i data-lucide="car" class="w-3.5 h-3.5"></i> ~${commute} drive
+              <i data-lucide="car" class="w-3.5 h-3.5"></i> ~${commute} ${t('drive')}
             </span>
             <span class="text-slate-300 dark:text-slate-600">•</span>
-            <span>${escapeHtml(h.hours || 'Open 24 hours')}</span>
+              <span>${escapeHtml(h.hours || t('open24Hours'))}</span>
           </div>
 
           <!-- 3-Pill Clinical Metric Matrix -->
           <div class="grid grid-cols-3 gap-2 my-3 text-center">
             
             <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
-              <span class="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block">🛏️ ICU Beds</span>
-              <span class="text-xs sm:text-sm font-extrabold text-emerald-600 dark:text-emerald-400 block mt-0.5">${h.icuAvailable ?? 8} Ready</span>
+              <span class="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block">🛏️ ${t('icuBeds')}</span>
+              <span class="text-xs sm:text-sm font-extrabold text-emerald-600 dark:text-emerald-400 block mt-0.5">${h.icuAvailable ?? 8} ${t('ready')}</span>
             </div>
 
             <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
-              <span class="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block">💰 Est. Procedure</span>
+              <span class="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block">💰 ${t('estimatedProcedure')}</span>
               <span class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white block mt-0.5">${costMin}</span>
             </div>
 
             <div class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
-              <span class="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block">📈 Outcome</span>
-              <span class="text-xs sm:text-sm font-extrabold text-sky-600 dark:text-sky-400 block mt-0.5">${h.successRate ?? 95}% Rate</span>
+              <span class="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block">📈 ${t('outcome')}</span>
+              <span class="text-xs sm:text-sm font-extrabold text-sky-600 dark:text-sky-400 block mt-0.5">${h.successRate ?? 95}% ${t('rate')}</span>
             </div>
 
           </div>
@@ -775,30 +932,32 @@ function renderHospitalCards(hospitals) {
           <!-- AI Explainability Reason -->
           <div class="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-[11px] text-sky-700 dark:text-sky-200 leading-relaxed mb-3">
             <i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline mr-1 text-sky-500"></i>
-            ${escapeHtml(h.explainabilityReason || 'Verified provider with dedicated specialists.')}
+            ${escapeHtml(h.explainabilityReason || t('verifiedProvider'))}
           </div>
         </div>
 
         <!-- Action Buttons Row (Touch Optimized for Mobile) -->
-        <div class="grid grid-cols-4 gap-1 pt-2 border-t border-slate-200 dark:border-slate-800">
+        <div class="grid grid-cols-5 gap-1 pt-2 border-t border-slate-200 dark:border-slate-800">
           <a href="tel:${escapeHtml(h.phone)}" class="py-2.5 px-1 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold text-[10px] sm:text-xs flex items-center justify-center gap-1 shadow-sm transition-all">
             <i data-lucide="phone" class="w-3 h-3"></i>
-            <span>Call</span>
+            <span>${t('call')}</span>
           </a>
 
           <a href="${h.mapUrl}" target="_blank" rel="noopener" class="py-2.5 px-1 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-extrabold text-[10px] sm:text-xs flex items-center justify-center gap-1 shadow-sm transition-all">
             <i data-lucide="map" class="w-3 h-3"></i>
-            <span>Map</span>
+            <span>${t('map')}</span>
           </a>
 
           <button type="button" onclick="openReviewModal('${escapeHtml(h.id)}', '${escapeHtml(h.name)}')" class="py-2.5 px-1 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30 text-[10px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm">
             <i data-lucide="star" class="w-3 h-3"></i>
-            <span>Review</span>
+            <span>${t('review')}</span>
           </button>
+
+          <button type="button" onclick="shareHospital('${escapeHtml(h.id)}')" class="py-2.5 px-1 rounded-xl bg-violet-50 text-violet-700 font-bold border border-violet-200 text-[10px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm"><i data-lucide="share-2" class="w-3 h-3"></i><span>${t('share')}</span></button>
 
           <button type="button" onclick="toggleCompareHospital('${escapeHtml(h.id)}')" class="py-2.5 px-1 rounded-xl ${isCompared ? 'bg-indigo-600 text-white font-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold border border-slate-200 dark:border-slate-700'} text-[10px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm">
             <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
-            <span>${isCompared ? 'Added' : 'Compare'}</span>
+            <span>${isCompared ? t('added') : t('compare')}</span>
           </button>
         </div>
 
@@ -806,7 +965,7 @@ function renderHospitalCards(hospitals) {
     `;
     }).join('');
 
-    lucide.createIcons();
+    window.lucide?.createIcons?.();
 }
 
 // =========================================================================
@@ -829,8 +988,11 @@ function initOrUpdateMap() {
     mapMarkersGroup.clearLayers();
     const boundsPoints = [];
 
-    const centerCoords = appState.userCoords || { lat: 30.7333, lon: 76.7794 };
-    if (centerCoords) {
+    const centerCoords = appState.userCoords
+        ? { lat: Number(appState.userCoords.lat), lon: Number(appState.userCoords.lon ?? appState.userCoords.lng) }
+        : null;
+    const hasUserCoordinates = Number.isFinite(centerCoords?.lat) && Number.isFinite(centerCoords?.lon);
+    if (hasUserCoordinates) {
         if (userLocationMarker) userLocationMarker.remove();
         userLocationMarker = L.circleMarker([centerCoords.lat, centerCoords.lon], {
             radius: 9,
@@ -840,22 +1002,27 @@ function initOrUpdateMap() {
             weight: 3
         }).bindPopup(`<strong>📍 Search Center: ${escapeHtml(appState.detectedLocationName)}</strong>`).addTo(resultsMap);
         boundsPoints.push([centerCoords.lat, centerCoords.lon]);
+    } else if (userLocationMarker) {
+        userLocationMarker.remove();
+        userLocationMarker = null;
     }
 
     appState.filteredHospitals.forEach(h => {
-        if (h.lat && h.lon) {
-            const marker = L.marker([h.lat, h.lon])
+        const lat = Number(h.lat ?? h.coordinates?.lat);
+        const lon = Number(h.lon ?? h.lng ?? h.coordinates?.lng);
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+            const marker = L.marker([lat, lon])
                 .bindPopup(`
           <div style="font-family: sans-serif; min-width: 180px;">
             <strong style="color: #0f172a; font-size: 14px;">${escapeHtml(h.name)}</strong><br/>
-            <span style="color: #0284c7; font-size: 11px; font-weight: bold;">⭐ ${h.rating} • ${h.distanceKm} km away</span><br/>
+            <span style="color: #0284c7; font-size: 11px; font-weight: bold;">⭐ ${h.rating ?? 'Rating not listed'}${h.distanceKm != null ? ` • ${h.distanceKm} km away` : ''}</span><br/>
             <span style="color: #10b981; font-size: 11px;">🛏️ ${h.icuAvailable} ICU Beds</span><br/>
-            <a href="tel:${h.phone}" style="display:inline-block; margin-top:6px; background:#0ea5e9; color:#fff; padding:4px 8px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold;">Call Hospital</a>
+            ${h.phone ? `<a href="tel:${String(h.phone).replace(/[^+\d]/g, '')}" style="display:inline-block; margin-top:6px; background:#0ea5e9; color:#fff; padding:4px 8px; border-radius:6px; text-decoration:none; font-size:11px; font-weight:bold;">Call Hospital</a>` : ''}
           </div>
         `)
                 .addTo(mapMarkersGroup);
 
-            boundsPoints.push([h.lat, h.lon]);
+            boundsPoints.push([lat, lon]);
         }
     });
 
@@ -864,7 +1031,8 @@ function initOrUpdateMap() {
     }
 
     const mapStatus = document.getElementById('map-status');
-    if (mapStatus) mapStatus.textContent = `${appState.filteredHospitals.length} hospitals mapped near ${appState.detectedLocationName}`;
+    const mappedCount = boundsPoints.length - (hasUserCoordinates ? 1 : 0);
+    if (mapStatus) mapStatus.textContent = `${mappedCount} hospitals shown near ${appState.detectedLocationName}`;
 }
 
 // =========================================================================
@@ -897,6 +1065,8 @@ function updateCompareCounters() {
 
     const barBadge = document.getElementById('compare-bar-badge');
     const mobBadge = document.getElementById('mob-compare-count');
+    const compareCount = document.getElementById('compare-selected-count');
+    if (compareCount) compareCount.textContent = String(count);
     if (barBadge) barBadge.textContent = String(count);
     if (mobBadge) {
         mobBadge.textContent = String(count);
@@ -915,7 +1085,7 @@ function updateCompareCounters() {
 }
 
 function toggleCompareHospital(hospitalId) {
-    const hospital = appState.hospitals.find(h => h.id === hospitalId) || appState.comparedMap.get(hospitalId);
+    const hospital = appState.hospitals.find(h => h.id === hospitalId) || appState.savedHospitalRecords[hospitalId] || appState.comparedMap.get(hospitalId);
     if (!hospital) return;
 
     if (appState.comparedIds.has(hospitalId)) {
@@ -953,11 +1123,11 @@ function renderCompareModal() {
         content.innerHTML = `
       <div class="py-12 text-center">
         <i data-lucide="sliders-horizontal" class="w-12 h-12 text-slate-400 mx-auto mb-2"></i>
-        <h4 class="text-base font-bold text-slate-900 dark:text-white mb-1">No Hospitals Selected</h4>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Click "+ Compare" on any hospital card to see side-by-side metrics.</p>
+        <h4 class="text-base font-bold text-slate-900 dark:text-white mb-1">${window.medigoText?.('noHospitalsSelected') || 'No hospitals selected'}</h4>
+        <p class="text-xs text-slate-500 dark:text-slate-400">${window.medigoText?.('tapCompare') || 'Click + Compare on any hospital card to see side-by-side metrics.'}</p>
       </div>
     `;
-        lucide.createIcons();
+        window.lucide?.createIcons?.();
         return;
     }
 
@@ -1027,7 +1197,7 @@ function renderCompareModal() {
     </div>
   `;
 
-  lucide.createIcons();
+  window.lucide?.createIcons?.();
 }
 
 // =========================================================================
@@ -1082,6 +1252,8 @@ function escapeHtml(val) {
 
 function resetFilters() {
   appState.selectedFilter = 'all';
+  appState.selectedBudgetCaps.clear();
+  document.querySelectorAll('.budget-checkbox').forEach(cb => cb.checked = false);
   document.querySelectorAll('.filter-chip').forEach(c => {
     if (c.getAttribute('data-filter') === 'all') {
       c.classList.add('bg-sky-500', 'text-white', 'font-bold');
@@ -1094,15 +1266,29 @@ function resetFilters() {
   applyFiltersAndSort();
 }
 
-function checkAuthSession() {
-  const token = localStorage.getItem('medadvisor_token');
-  const accountLink = document.getElementById('account-link');
-  const accountText = document.getElementById('account-btn-text');
-
-  if (token && accountText) {
-    accountText.textContent = 'My Profile';
-    if (accountLink) accountLink.href = 'profile.html';
+function toggleSavedHospital(id) {
+  if (appState.savedHospitalIds.has(id)) {
+    appState.savedHospitalIds.delete(id);
+    delete appState.savedHospitalRecords[id];
+  } else {
+    const hospital = appState.hospitals.find((item) => item.id === id) || appState.savedHospitalRecords[id];
+    if (!hospital) return;
+    appState.savedHospitalIds.add(id);
+    appState.savedHospitalRecords[id] = hospital;
   }
+  localStorage.setItem('medigo_saved_hospitals', JSON.stringify([...appState.savedHospitalIds]));
+  localStorage.setItem('medigo_saved_hospital_data', JSON.stringify(appState.savedHospitalRecords));
+  applyFiltersAndSort();
+}
+
+async function shareHospital(id) {
+  const hospital = appState.hospitals.find(item => item.id === id) || appState.savedHospitalRecords[id];
+  if (!hospital) return;
+  const shareData = { title: hospital.name, text: `${hospital.name} — ${hospital.location || 'Hospital'} | MediGo`, url: hospital.mapUrl || location.href };
+  try {
+    if (navigator.share) await navigator.share(shareData);
+    else { await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`); showNotificationToast('Link copied', 'Hospital details are ready to share.'); }
+  } catch (error) { if (error.name !== 'AbortError') showNotificationToast('Could not share', 'Please try again.', 'error'); }
 }
 
 // =========================================================================
@@ -1132,7 +1318,7 @@ function showNotificationToast(title, message, type = 'success') {
   `;
 
   container.appendChild(toast);
-  lucide.createIcons();
+  window.lucide?.createIcons?.();
 
   requestAnimationFrame(() => {
     toast.classList.remove('translate-y-2', 'opacity-0');
@@ -1142,20 +1328,6 @@ function showNotificationToast(title, message, type = 'success') {
     toast.classList.add('opacity-0', 'translate-y-2');
     setTimeout(() => toast.remove(), 350);
   }, 4800);
-}
-
-function checkLoginToast() {
-  const loginToastData = localStorage.getItem('medigo_login_toast');
-  if (loginToastData) {
-    localStorage.removeItem('medigo_login_toast');
-    try {
-      const info = JSON.parse(loginToastData);
-      showNotificationToast(
-        info.mode === 'signup' ? '🎉 Welcome to MediGo!' : '👋 Welcome Back to MediGo!',
-        `Logged in successfully as ${info.name || 'Citizen'}. You can now save preferences and review hospitals.`
-      );
-    } catch (e) {}
-  }
 }
 
 // =========================================================================
@@ -1187,13 +1359,13 @@ function initReviewsModal() {
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Submitting...`;
-        lucide.createIcons();
+        window.lucide?.createIcons?.();
       }
 
       try {
         const res = await fetch(`${API_BASE}/api/reviews`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('medigo_auth_token') || ''}` },
           body: JSON.stringify({
             hospitalId,
             hospitalName,
@@ -1204,7 +1376,8 @@ function initReviewsModal() {
           })
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) { window.openMediGoAuth?.('Sign in to submit a hospital review.'); return; }
         if (data.success) {
           showNotificationToast('⭐ Review Submitted!', `Thank you ${userName}! Your review for ${hospitalName} has been published.`);
           document.getElementById('review-comment').value = '';
@@ -1225,7 +1398,7 @@ function initReviewsModal() {
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5"></i> Submit Review`;
-          lucide.createIcons();
+          window.lucide?.createIcons?.();
         }
       }
     });
@@ -1242,7 +1415,7 @@ window.openReviewModal = function(hospitalId, hospitalName) {
 
   modal.classList.remove('hidden');
   loadHospitalReviews(hospitalId);
-  lucide.createIcons();
+  window.lucide?.createIcons?.();
 };
 
 window.closeReviewModal = function() {

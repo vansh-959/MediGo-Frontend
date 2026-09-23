@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ef4444">
+  <title>MediGo · Offline emergency help</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #0f172a; background: #f8fafc; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
+    main { width: min(100%, 34rem); padding: 1.5rem; background: white; border: 1px solid #e2e8f0; border-radius: 1.25rem; box-shadow: 0 18px 50px #0f172a16; }
+    h1 { margin: 0 0 .5rem; font-size: 1.5rem; }
+    p { color: #475569; line-height: 1.55; }
+    .alert { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; padding: 1rem; border-radius: .9rem; }
+    a { display: inline-flex; min-height: 3.25rem; align-items: center; justify-content: center; margin: .25rem .25rem .25rem 0; padding: .7rem 1rem; border-radius: .8rem; background: #b91c1c; color: white; font-weight: 800; text-decoration: none; }
+    a.secondary { background: #075985; }
+    .note { font-size: .8rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>MediGo is offline</h1>
+    <p>Your phone has no internet connection. Cached hospital information may be available on the Emergency page.</p>
+    <div class="alert"><strong>Need an ambulance in India?</strong><br>Call emergency helpline 108 directly. MediGo cannot email or dispatch an ambulance while offline.</div>
+    <p><a href="tel:108">Call 108</a><a class="secondary" href="./emergency.html">Open emergency hospitals</a></p>
+    <p class="note">If safe, share your location verbally with emergency services. GPS, maps, hospital data, and calls may depend on your device and network.</p>
+    <p><a class="secondary" href="./index.html">Return to MediGo</a></p>
+  </main>
+</body>
+</html>

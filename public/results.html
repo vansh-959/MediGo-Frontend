@@ -1,0 +1,184 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ef4444"><title>Hospital results | MediGo</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/lucide@latest"></script></head><body class="min-h-screen bg-slate-50 pb-20 text-slate-900"><header class="sticky top-0 z-10 border-b bg-white"><div class="mx-auto flex max-w-3xl items-center justify-between gap-2 p-4"><a href="index.html" class="font-extrabold">← MediGo</a><button id="saved-header-btn" type="button" class="text-sm font-bold text-sky-700">♥ Saved</button><a href="compare.html" class="text-sm font-bold text-indigo-700">Compare</a><a href="emergency.html" class="rounded-lg bg-rose-700 px-3 py-2 text-sm font-bold text-white">Emergency · 108</a></div></header><main class="mx-auto max-w-3xl space-y-4 p-4"><section class="rounded-2xl bg-white p-4 shadow-sm"><h1 class="text-xl font-extrabold">Nearby hospital results</h1><p id="query-label" class="mt-1 text-sm text-slate-600"></p><p id="status" role="status" class="mt-3 text-sm text-slate-700">Finding hospitals…</p><label class="mt-4 flex items-center justify-between gap-3 text-sm font-semibold text-slate-700">Sort hospitals<select id="hospital-sort" class="rounded-lg border border-slate-300 bg-white px-3 py-2"><option value="best">Best match</option><option value="rating">Top rated</option><option value="nearest">Nearest</option><option value="cost">Lowest cost</option></select></label><button id="show-map-btn" type="button" class="mt-3 rounded-lg bg-sky-700 px-3 py-2 text-sm font-bold text-white">Show hospitals on map</button></section><section id="intent" class="hidden rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm"></section><section aria-label="Filter hospital results" class="flex gap-2 overflow-x-auto pb-1"><button type="button" data-results-filter="all" class="shrink-0 rounded-full bg-sky-700 px-3 py-2 text-xs font-bold text-white">All hospitals</button><button type="button" data-results-filter="saved" class="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-bold">♥ Saved</button><button type="button" data-results-filter="emergency" class="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-bold">24/7 emergency</button><button type="button" data-results-filter="ayushman" class="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-bold">Ayushman</button><button type="button" data-results-filter="icu" class="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-bold">ICU beds</button></section><section id="results-map-section" class="hidden overflow-hidden rounded-2xl border bg-white p-2 shadow-sm"><div class="flex items-center justify-between px-2 py-1"><h2 class="text-sm font-extrabold">Hospital map</h2><span id="map-status" class="text-xs text-slate-600"></span></div><div id="results-map" class="h-72 w-full rounded-xl"></div></section><div id="results" class="space-y-3"></div><p class="text-xs text-slate-600">Directory information may not reflect current availability. Call the hospital to confirm. For an emergency, call 108.</p></main><nav class="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t bg-white px-2 py-2 shadow-[0_-4px_12px_rgba(15,23,42,.08)] sm:hidden" aria-label="Results navigation"><button id="nav-results" type="button" class="flex min-h-11 flex-col items-center justify-center gap-1 text-[10px] font-semibold"><i data-lucide="list" class="h-4 w-4"></i>Hospitals</button><button id="nav-map" type="button" class="flex min-h-11 flex-col items-center justify-center gap-1 text-[10px] font-semibold"><i data-lucide="map" class="h-4 w-4"></i>Map</button><button id="nav-saved" type="button" class="flex min-h-11 flex-col items-center justify-center gap-1 text-[10px] font-semibold"><i data-lucide="heart" class="h-4 w-4"></i>Saved</button><a href="emergency.html" class="flex min-h-11 flex-col items-center justify-center gap-1 text-[10px] font-semibold text-rose-700"><i data-lucide="siren" class="h-4 w-4"></i>Emergency</a></nav><script src="js/config.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const query = params.get('q') || '';
+  const city = params.get('city') || '';
+  const lat = params.get('lat');
+  const lng = params.get('lng');
+  const label = document.getElementById('query-label');
+  const status = document.getElementById('status');
+  const box = document.getElementById('results');
+  const sortSelect = document.getElementById('hospital-sort');
+  let currentHospitals = [];
+  let currentSpecialty = '';
+  let currentFallback = false;
+  let activeFilter = params.get('filter') === 'saved' && localStorage.getItem('medigo_auth_token') ? 'saved' : 'all';
+  let resultsMap = null;
+  let mapMarkers = null;
+  const readStored = (key, fallback) => { try { const value = JSON.parse(localStorage.getItem(key) || ''); return value ?? fallback; } catch { return fallback; } };
+  const requireAccount = () => {
+    if (localStorage.getItem('medigo_auth_token')) return true;
+    localStorage.setItem('medigo_auth_return_to', location.href);
+    location.href = 'index.html#signin';
+    return false;
+  };
+  label.textContent = query ? `You searched: ${query}${city ? ` · ${city}` : ''}` : 'No search entered';
+  if (!query) { status.textContent = 'Go back and enter a symptom or condition.'; return; }
+
+  const specialtyFor = (value) => {
+    const text = value.toLowerCase();
+    const rules = [[/cancer|tumou?r|oncolog/, 'Oncology'], [/heart|cardiac|chest pain|bypass/, 'Cardiology'], [/kidney|renal|dialysis/, 'Nephrology'], [/stone|urine|prostate/, 'Urology'], [/bone|fracture|knee|joint|orthop/, 'Orthopedics'], [/brain|stroke|nerve|neurolog/, 'Neurology'], [/child|baby|paediatric|pediatric/, 'Pediatrics'], [/lung|breath|asthma|cough/, 'Pulmonology'], [/stomach|appendix|liver|gastro/, 'Gastroenterology'], [/skin|rash|dermat/, 'Dermatology'], [/eye|vision|ophthalm/, 'Ophthalmology']];
+    return rules.find(([pattern]) => pattern.test(text))?.[1] || 'General Medicine';
+  };
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const savedHospitals = (fallbackHospitals = []) => {
+    const ids = readStored('medigo_saved_hospitals', []);
+    const records = readStored('medigo_saved_hospital_data', {});
+    if (!Array.isArray(ids) || !records || typeof records !== 'object' || Array.isArray(records)) return [];
+    const byId = new Map(fallbackHospitals.map(h => [h.id, h]));
+    return ids.map(id => records[id] || byId.get(id)).filter(h => h && h.id);
+  };
+  const matchesFilter = (hospital, filter) => {
+    if (filter === 'emergency') return Number(hospital.emergencyBedsAvailable) > 0;
+    if (filter === 'ayushman') return (hospital.insuranceAccepted || []).some(item => /ayushman|pm-jay|sarbat/i.test(item));
+    if (filter === 'icu') return Number(hospital.icuAvailable) >= 10;
+    return true;
+  };
+  const renderMap = (hospitals) => {
+    const section = document.getElementById('results-map-section');
+    if (!section || section.classList.contains('hidden')) return;
+    if (!window.L) { document.getElementById('map-status').textContent = 'Map could not load. Check your connection.'; return; }
+    if (!resultsMap) {
+      resultsMap = L.map('results-map').setView([22.5, 79], 5);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 18 }).addTo(resultsMap);
+      mapMarkers = L.layerGroup().addTo(resultsMap);
+    }
+    mapMarkers.clearLayers();
+    const points = [];
+    hospitals.forEach(h => {
+      const lat = Number(h.lat ?? h.coordinates?.lat);
+      const lng = Number(h.lon ?? h.lng ?? h.coordinates?.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
+      L.marker([lat, lng]).bindPopup(`<strong>${esc(h.name)}</strong><br>${esc(h.location || h.city || '')}${h.phone ? `<br><a href="tel:${String(h.phone).replace(/[^+\\d]/g, '')}">Call hospital</a>` : ''}`).addTo(mapMarkers);
+      points.push([lat, lng]);
+    });
+    if (points.length) resultsMap.fitBounds(points, { padding: [24, 24], maxZoom: 13 });
+    else resultsMap.setView([22.5, 79], 5);
+    document.getElementById('map-status').textContent = `${points.length} hospitals shown`;
+    setTimeout(() => resultsMap.invalidateSize(), 50);
+  };
+  const render = (hospitals, specialty, fallback = false) => {
+    currentHospitals = hospitals; currentSpecialty = specialty; currentFallback = fallback;
+    const sortMode = sortSelect?.value || 'best';
+    hospitals = activeFilter === 'saved' ? savedHospitals(currentHospitals) : [...currentHospitals];
+    hospitals = hospitals.filter(h => matchesFilter(h, activeFilter));
+    if (sortMode === 'rating') hospitals.sort((a,b) => (b.rating || 0) - (a.rating || 0));
+    if (sortMode === 'nearest') hospitals.sort((a,b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+    if (sortMode === 'cost') hospitals.sort((a,b) => (a.estimatedTreatmentCost?.min ?? a.avgConsultationCost ?? Infinity) - (b.estimatedTreatmentCost?.min ?? b.avgConsultationCost ?? Infinity));
+    const intent = document.getElementById('intent');
+    const savedRecords = readStored('medigo_saved_hospitals', []);
+    const savedIds = Array.isArray(savedRecords) ? savedRecords : [];
+    const comparedRecords = readStored('med_compare_ids', []);
+    const comparedIds = Array.isArray(comparedRecords) ? comparedRecords : [];
+    intent.innerHTML = `<strong>Care type:</strong> ${esc(specialty)} &nbsp; <strong>Area:</strong> ${esc(city || 'Nearby')}<p class="mt-1">${fallback ? 'Matched using each hospital’s listed departments. Call to confirm care availability.' : 'Call the hospital to confirm it offers the care you need.'}</p>`;
+    intent.classList.remove('hidden');
+    box.innerHTML = hospitals.map((h, index) => `<article class="overflow-hidden rounded-2xl border bg-white shadow-sm"><img src="${h.image && /^https:\/\//i.test(h.image) ? esc(h.image) : ''}" alt="${esc(h.name)}" class="h-44 w-full object-cover" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.classList.remove('hidden')"><div class="hidden h-44 w-full items-center justify-center bg-sky-50 text-sky-700"><span class="text-4xl" aria-hidden="true">🏥</span><span class="sr-only">Hospital image unavailable</span></div><div class="p-4"><h2 class="font-extrabold">${esc(h.name)}</h2><p class="mt-1 text-sm text-slate-600">${esc(h.location || h.city || '')} ${Number.isFinite(h.distanceKm) ? `· ${h.distanceKm.toFixed(1)} km` : ''}</p><p class="mt-1 text-xs text-slate-500">${esc((h.specialties || []).join(', '))}</p><p class="mt-1 text-xs font-semibold text-slate-700">★ ${Number.isFinite(h.rating) ? h.rating : 'Rating unavailable'} · ${h.estimatedTreatmentCost?.min != null ? `from ₹${Number(h.estimatedTreatmentCost.min).toLocaleString('en-IN')}` : h.avgConsultationCost != null ? `consultation ₹${Number(h.avgConsultationCost).toLocaleString('en-IN')}` : 'Cost not listed'}</p><div class="mt-3 flex flex-wrap gap-2">${h.phone ? `<a class="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white" href="tel:${String(h.phone).replace(/[^+\d]/g, '')}">Call hospital</a>` : ''}${h.mapUrl && h.mapUrl.startsWith('https://www.google.com/maps/') ? `<a class="rounded-lg bg-sky-700 px-3 py-2 text-sm font-bold text-white" href="${esc(h.mapUrl)}" target="_blank" rel="noopener">Directions</a>` : ''}<button class="rounded-lg bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700" data-save-index="${index}">${savedIds.includes(h.id) ? '♥ Saved' : '♡ Save'}</button><button class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold" data-compare-index="${index}" aria-pressed="${comparedIds.includes(h.id)}">${comparedIds.includes(h.id) ? '✓ Added' : 'Compare'}</button></div></div></article>`).join('') || '<p class="rounded-xl bg-white p-4">No hospitals listed for this search area. Try another city.</p>';
+    box.querySelectorAll('[data-save-index]').forEach(button => button.addEventListener('click', () => {
+      if (!requireAccount()) return;
+      const hospital = hospitals[Number(button.dataset.saveIndex)];
+      const ids = readStored('medigo_saved_hospitals', []);
+      const records = readStored('medigo_saved_hospital_data', {});
+      if (!hospital?.id || !Array.isArray(ids) || !records || typeof records !== 'object' || Array.isArray(records)) return;
+      const saved = ids.includes(hospital.id);
+      const nextIds = saved ? ids.filter(id => id !== hospital.id) : [...ids, hospital.id];
+      if (saved) delete records[hospital.id]; else records[hospital.id] = hospital;
+      localStorage.setItem('medigo_saved_hospitals', JSON.stringify(nextIds));
+      localStorage.setItem('medigo_saved_hospital_data', JSON.stringify(records));
+      render(currentHospitals, currentSpecialty, currentFallback);
+    }));
+    box.querySelectorAll('[data-compare-index]').forEach(button => button.addEventListener('click', () => {
+      if (!requireAccount()) return;
+      const h = hospitals[Number(button.dataset.compareIndex)]; const id = h?.id || h?.placeId; if (!id) return;
+      const storedIds = readStored('med_compare_ids', []); const records = readStored('med_compare_hospitals', {});
+      if (!Array.isArray(storedIds) || !records || typeof records !== 'object' || Array.isArray(records)) return;
+      const ids = storedIds.filter((selectedId) => selectedId !== id);
+      const wasSelected = ids.length !== storedIds.length;
+      if (wasSelected) delete records[id];
+      else {
+        if (ids.length >= 4) { status.textContent = 'You can compare up to 4 hospitals. Remove one from the selection first.'; return; }
+        ids.push(id); records[id] = h;
+      }
+      localStorage.setItem('med_compare_ids', JSON.stringify(ids));
+      localStorage.setItem('med_compare_hospitals', JSON.stringify(records));
+      button.textContent = wasSelected ? 'Compare' : '✓ Added';
+      button.setAttribute('aria-pressed', String(!wasSelected));
+      status.textContent = `${ids.length} selected. Choose at least 2, then open Compare.`;
+    }));
+    status.textContent = `${hospitals.length} hospitals shown${activeFilter === 'all' ? '' : ` · ${activeFilter === 'saved' ? 'saved' : activeFilter}`}`;
+    renderMap(hospitals);
+  };
+  sortSelect?.addEventListener('change', () => render(currentHospitals, currentSpecialty, currentFallback));
+  const chooseFilter = (filter) => {
+    if (filter === 'saved' && !localStorage.getItem('medigo_auth_token')) {
+      const returnTo = new URL(location.href);
+      returnTo.searchParams.set('filter', 'saved');
+      localStorage.setItem('medigo_auth_return_to', returnTo.href);
+      location.href = 'index.html#signin';
+      return;
+    }
+    activeFilter = filter;
+    document.querySelectorAll('[data-results-filter]').forEach(button => {
+      const selected = button.dataset.resultsFilter === filter;
+      button.classList.toggle('bg-sky-700', selected);
+      button.classList.toggle('text-white', selected);
+      button.classList.toggle('bg-white', !selected);
+    });
+    render(currentHospitals, currentSpecialty, currentFallback);
+  };
+  document.querySelectorAll('[data-results-filter]').forEach(button => button.addEventListener('click', () => chooseFilter(button.dataset.resultsFilter)));
+  document.getElementById('saved-header-btn')?.addEventListener('click', () => chooseFilter('saved'));
+  document.getElementById('nav-saved')?.addEventListener('click', () => { chooseFilter('saved'); box.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  document.getElementById('nav-results')?.addEventListener('click', () => box.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  document.getElementById('nav-map')?.addEventListener('click', () => {
+    document.getElementById('results-map-section')?.classList.remove('hidden');
+    renderMap(activeFilter === 'saved' ? savedHospitals(currentHospitals) : currentHospitals.filter(h => matchesFilter(h, activeFilter)));
+    document.getElementById('results-map-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('show-map-btn')?.addEventListener('click', () => {
+    document.getElementById('results-map-section')?.classList.remove('hidden');
+    renderMap(activeFilter === 'saved' ? savedHospitals(currentHospitals) : currentHospitals.filter(h => matchesFilter(h, activeFilter)));
+    document.getElementById('results-map-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  if (activeFilter === 'saved') chooseFilter('saved');
+  try {
+    let data;
+    try {
+      const response = await fetch(`${MEDIGO_API_BASE}/api/hospitals/search`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({query, city, lat:lat == null ? undefined : Number(lat), lng:lng == null ? undefined : Number(lng)}), signal:AbortSignal.timeout(25000)});
+      data = await response.json();
+      if (!response.ok || !data.success) throw new Error('Search service unavailable');
+      render(data.hospitals || [], data.intent?.specialty || specialtyFor(query));
+    } catch (searchError) {
+      const directoryParams = new URLSearchParams();
+      if (city) directoryParams.set('city', city);
+      else if (lat != null && lng != null) { directoryParams.set('lat', lat); directoryParams.set('lng', lng); }
+      const directoryUrl = `${MEDIGO_API_BASE}/api/hospitals${directoryParams.size ? `?${directoryParams}` : ''}`;
+      const response = await fetch(directoryUrl, {headers:{Accept:'application/json'}, signal:AbortSignal.timeout(15000)});
+      const directory = await response.json();
+      if (!response.ok || !directory.success) throw new Error('Directory unavailable');
+      const specialty = specialtyFor(query);
+      let hospitals = (directory.hospitals || []).filter(h => specialty === 'General Medicine' || (h.specialties || []).join(' ').toLowerCase().includes(specialty.toLowerCase()));
+      if (!hospitals.length && specialty !== 'General Medicine') hospitals = directory.hospitals || [];
+      if (!city && lat != null && lng != null) {
+        const rad = n => n * Math.PI / 180;
+        const km = h => { const a=Number(h.lat ?? h.coordinates?.lat), o=Number(h.lon ?? h.coordinates?.lng); if(!Number.isFinite(a)||!Number.isFinite(o)) return Infinity; const dl=rad(a-Number(lat)), dn=rad(o-Number(lng)); const x=Math.sin(dl/2)**2+Math.cos(rad(Number(lat)))*Math.cos(rad(a))*Math.sin(dn/2)**2; return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); };
+        hospitals = hospitals.map(h => ({...h,distanceKm:km(h)})).sort((a,b)=>a.distanceKm-b.distanceKm);
+      }
+      render(hospitals, specialty, true);
+    }
+  } catch (error) {
+    status.textContent = 'Hospitals could not be loaded right now. Check your connection and try again.';
+    status.className = 'mt-3 text-sm font-bold text-rose-700';
+  }
+  window.lucide?.createIcons();
+})();
+</script></body></html>

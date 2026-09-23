@@ -6,6 +6,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+    <meta name="theme-color" content="#ef4444" />
+    <link rel="manifest" href="./manifest.json" />
     <title>MediGo Emergency | 24/7 Trauma & Pre-Arrival Hospital Alert</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -63,25 +65,25 @@
                 >MediGo</span
               >
               <span
-                class="text-[8px] sm:text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
+                class="text-[8px] sm:text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30" data-i18n="emergency"
                 >EMERGENCY</span
               >
             </div>
             <span
-              class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium"
+              class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium" data-i18n="emergencyPageSubtitle"
               >Trauma Response Protocol</span
             >
           </div>
         </a>
 
         <!-- Right Header Actions -->
-        <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2"><label for="language-select" class="sr-only" data-i18n="langLabel">Language</label><select id="language-select" aria-label="Language" class="max-w-24 rounded-lg border border-slate-300 bg-white px-1.5 py-1.5 text-[10px] font-bold text-slate-800"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hi-Latn">Hinglish</option><option value="pa">ਪੰਜਾਬੀ</option></select>
           <a
             href="index.html"
             class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-sky-500 flex items-center gap-1"
           >
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">Home</span>
+            <span class="hidden sm:inline" data-i18n="home">Home</span>
           </a>
 
           <button
@@ -98,6 +100,7 @@
 
     <!-- MAIN EMERGENCY CONTAINER -->
     <main class="max-w-4xl mx-auto px-3 sm:px-6 pt-4 space-y-4">
+      <div class="rounded-2xl border-2 border-rose-500 bg-rose-50 p-3 text-center text-sm font-extrabold text-rose-900 dark:bg-rose-950 dark:text-rose-100">If someone is in danger, call <a class="underline" href="tel:108">108 ambulance</a> or <a class="underline" href="tel:112">112 emergency</a> now. No sign-in needed.</div>
       <!-- URGENT 1-TAP HELPLINES BANNER -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
         <a
@@ -111,7 +114,7 @@
               <i data-lucide="phone-call" class="w-4 h-4"></i>
             </div>
             <div>
-              <span class="text-[10px] uppercase font-bold text-rose-200 block"
+              <span class="text-[10px] uppercase font-bold text-rose-200 block" data-i18n="ambulance"
                 >Ambulance</span
               >
               <span
@@ -137,7 +140,7 @@
               <i data-lucide="shield-alert" class="w-4 h-4"></i>
             </div>
             <div>
-              <span class="text-[10px] uppercase font-bold text-slate-400 block"
+              <span class="text-[10px] uppercase font-bold text-slate-400 block" data-i18n="allEmergency"
                 >All Emergency</span
               >
               <span
@@ -173,6 +176,7 @@
         </a>
       </div>
 
+      <a href="https://www.google.com/maps/search/taxi+near+me" target="_blank" rel="noopener" class="flex min-h-12 items-center justify-between rounded-xl border border-slate-300 bg-white px-4 text-sm font-extrabold text-slate-900 shadow-sm"><span>Need a ride? Find nearby taxis in Maps</span><i data-lucide="car" class="h-5 w-5 text-sky-700"></i></a><p class="-mt-2 px-1 text-[11px] text-slate-600">MediGo opens the map; it does not book or dispatch a taxi.</p>
       <!-- PRE-ARRIVAL PREPARATION FORM CARD -->
       <div
         class="theme-card rounded-3xl p-4 sm:p-6 border border-rose-500/40 shadow-xl relative overflow-hidden"
@@ -278,6 +282,7 @@
             <div class="flex items-center justify-between mb-1">
               <label
                 class="block text-[11px] font-bold text-slate-600 dark:text-slate-300"
+                data-i18n="selectReceivingHospital"
               >
                 Select Receiving Hospital *
               </label>
@@ -286,7 +291,7 @@
                 id="detect-gps-hospitals"
                 class="text-[10px] font-bold text-sky-500 hover:underline flex items-center gap-1"
               >
-                <i data-lucide="locate-fixed" class="w-3 h-3"></i> Use My Location
+                <i data-lucide="locate-fixed" class="w-3 h-3"></i><span data-i18n="refreshNearestGps">Refresh nearest via GPS</span>
               </button>
             </div>
             <select
@@ -298,6 +303,7 @@
                 Select trauma-ready hospital...
               </option>
             </select>
+            <p id="hospital-directory-note" role="status" class="mt-2 hidden rounded-lg bg-amber-50 p-2 text-[10px] leading-relaxed text-amber-900"></p>
             <div
               id="hospital-live-info"
               class="mt-1.5 p-2 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-[11px] flex items-center justify-between text-slate-600 dark:text-slate-300 hidden"
@@ -318,6 +324,7 @@
           <div>
             <label
               class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1"
+              data-i18n="emergencyConditionLabel"
             >
               Emergency Condition / Chief Complaint *
             </label>
@@ -326,40 +333,14 @@
               required
               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-rose-500 mb-2"
             >
-              <option
-                value="Severe Chest Pain & Suspected Heart Attack (Cardiac Emergency)"
-              >
-                🫀 Severe Chest Pain & Suspected Heart Attack (Cardiac)
-              </option>
-              <option
-                value="Accident & Severe Trauma / Multiple Fractures / Hemorrhage"
-              >
-                🚨 Accident & Severe Trauma / Fractures / Hemorrhage
-              </option>
-              <option value="Acute Stroke / Face Drooping / Paralysis Symptoms">
-                🧠 Acute Stroke / Paralysis / Speech Loss
-              </option>
-              <option
-                value="Severe Breathing Distress / Oxygen Saturation Drop"
-              >
-                🫁 Severe Breathing Difficulty / Cyanosis
-              </option>
-              <option value="Pediatric High Fever with Seizures / Convulsions">
-                👶 Pediatric High Fever with Seizures / Convulsions
-              </option>
-              <option
-                value="Severe Poisoning / Chemical Ingestion / Snake Bite"
-              >
-                🧪 Severe Poisoning / Chemical Ingestion / Snake Bite
-              </option>
-              <option
-                value="Acute Severe Abdominal Pain / Gallbladder / Appendicitis"
-              >
-                ⚕️ Acute Severe Abdominal Pain / Appendicitis
-              </option>
-              <option value="Other Critical Emergency Condition">
-                ⚠️ Other Critical Emergency Condition
-              </option>
+              <option value="Severe chest pain / possible heart problem" data-i18n="conditionChest">🫀 Severe chest pain / heart problem</option>
+              <option value="Road accident / serious injury / heavy bleeding" data-i18n="conditionAccident">🚨 Road accident / serious injury / heavy bleeding</option>
+              <option value="Difficulty breathing / choking" data-i18n="conditionBreathing">🫁 Difficulty breathing / choking</option>
+              <option value="Possible stroke / face drooping / trouble speaking" data-i18n="conditionStroke">🧠 Possible stroke / face drooping / trouble speaking</option>
+              <option value="High fever / seizure" data-i18n="conditionFever">🌡️ High fever / seizure</option>
+              <option value="Poisoning / snake bite" data-i18n="conditionPoison">🧪 Poisoning / snake bite</option>
+              <option value="Severe stomach pain" data-i18n="conditionStomach">⚕️ Severe stomach pain</option>
+              <option value="Other emergency" data-i18n="conditionOther">⚠️ Other emergency</option>
             </select>
           </div>
 
@@ -429,53 +410,8 @@
             </div>
           </div>
 
-          <!-- Row 5: ETA Selector -->
-          <div>
-            <label
-              class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5"
-            >
-              Estimated Arrival Time (ETA):
-            </label>
-            <div
-              class="flex items-center gap-2 overflow-x-auto pb-1"
-              id="eta-pills-container"
-            >
-              <button
-                type="button"
-                data-eta="5"
-                class="eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0"
-              >
-                5 Mins
-              </button>
-              <button
-                type="button"
-                data-eta="10"
-                class="eta-btn px-3 py-1.5 rounded-xl border border-rose-500 bg-rose-500 text-white font-bold text-xs shrink-0"
-              >
-                10 Mins
-              </button>
-              <button
-                type="button"
-                data-eta="15"
-                class="eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0"
-              >
-                15 Mins
-              </button>
-              <button
-                type="button"
-                data-eta="20"
-                class="eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0"
-              >
-                20 Mins
-              </button>
-              <button
-                type="button"
-                data-eta="30"
-                class="eta-btn px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 font-bold text-xs shrink-0"
-              >
-                30+ Mins
-              </button>
-            </div>
+          <div class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold leading-relaxed text-rose-900 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-100">
+            MediGo can email the selected hospital, but cannot dispatch an ambulance or promise an arrival time. Call <a class="underline font-black" href="tel:108">108 now</a> for ambulance dispatch.
           </div>
 
           <!-- Row 6: Additional Clinical Notes -->
@@ -518,7 +454,7 @@
               ></span>
               <span
                 class="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider"
-                >Hospital Alert Dispatched & Active</span
+                >Emergency email sent · awaiting hospital confirmation</span
               >
             </div>
             <span
@@ -553,7 +489,7 @@
                   >Preparation Status</span
                 >
                 <span class="font-extrabold text-emerald-500 text-xs"
-                  >Trauma Team Standby</span
+                  >Hospital confirmation pending</span
                 >
               </div>
             </div>
@@ -585,6 +521,7 @@
       <section class="space-y-2.5">
         <div class="flex items-center justify-between px-1">
           <h3
+            id="trauma-hospitals-heading"
             class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5"
           >
             <i data-lucide="hospital" class="w-4 h-4 text-rose-500"></i> Nearest
@@ -598,14 +535,24 @@
         </div>
 
         <div id="trauma-hospitals-list" class="space-y-2">
-          <div class="py-8 text-center text-xs text-slate-500">
-            Loading nearest emergency trauma centers...
+          <div class="py-8 text-center text-xs text-slate-500" data-i18n="loadingTrauma">
+            Loading listed emergency hospitals...
           </div>
         </div>
       </section>
     </main>
 
     <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
     <script src="js/emergency.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js", { scope: "./", updateViaCache: "none" })
+            .catch((error) => console.warn("MediGo offline support could not start:", error));
+        });
+      }
+    </script>
   </body>
 </html>

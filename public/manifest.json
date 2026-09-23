@@ -1,0 +1,33 @@
+{
+  "id": "./index.html",
+  "name": "MediGo Healthcare",
+  "short_name": "MediGo",
+  "description": "Find hospitals, get emergency help, and compare care options.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#ef4444",
+  "background_color": "#f8fafc",
+  "categories": ["health", "medical"],
+  "icons": [
+    {
+      "src": "./icons/medigo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/medigo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/medigo-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

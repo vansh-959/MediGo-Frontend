@@ -162,6 +162,111 @@ button, a, input, select {
   z-index: 2000;
 }
 
+/* Always show Ask AI; keep it clear of SOS and the mobile bottom navigation. */
+#floating-chat-trigger {
+  position: fixed;
+  display: inline-flex !important;
+  right: 1rem;
+  bottom: max(9rem, calc(env(safe-area-inset-bottom, 0px) + 8rem));
+  z-index: 1000;
+}
+
+@media (min-width: 640px) {
+  #floating-chat-trigger {
+    right: 10rem;
+    bottom: 1.5rem;
+  }
+}
+
+/* Keep emergency controls usable if the Tailwind CDN is unavailable offline. */
+.hidden {
+  display: none !important;
+}
+
+#emergency-sos-trigger {
+  position: fixed;
+  z-index: 1000;
+  right: 1rem;
+  bottom: max(5rem, calc(env(safe-area-inset-bottom, 0px) + 4rem));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.5rem;
+  border: 2px solid #fff;
+  border-radius: 9999px;
+  padding: 0.5rem 1.25rem;
+  background: #dc2626;
+  color: #fff;
+  font-weight: 900;
+  box-shadow: 0 12px 28px #7f1d1d55;
+}
+
+#emergency-sos-dialog:not(.hidden) {
+  position: fixed;
+  z-index: 3200;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: #020617b8;
+}
+
+#emergency-sos-dialog > section {
+  width: min(100%, 28rem);
+  padding: 1.25rem;
+  border: 1px solid #fecaca;
+  border-radius: 1rem;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 20px 60px #02061755;
+}
+
+#emergency-sos-dialog button,
+#emergency-sos-dialog a {
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  font-weight: 800;
+}
+
+#emergency-sos-dialog a[href="tel:108"] {
+  background: #b91c1c;
+  color: #fff;
+  text-decoration: none;
+}
+
+@media (min-width: 640px) {
+  #emergency-sos-trigger {
+    bottom: 1.5rem;
+  }
+}
+
+/* Keep assistant answers readable against the light chat surface in either theme. */
+#chat-messages .chat-ai-copy {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  font-weight: 500;
+}
+
+#chat-messages .chat-ai-copy strong {
+  color: #020617 !important;
+  font-weight: 800;
+}
+
+#chat-messages .chat-ai-copy a {
+  color: #0369a1 !important;
+  text-decoration: underline;
+}
+
+#chat-messages .chat-ai-copy li::marker {
+  color: #0369a1;
+}
+
+#chat-messages > div > div:not(.chat-ai-copy) {
+  opacity: 1;
+}
+
 /* Pulsing Badge Indicator */
 @keyframes ring-pulse {
   0% { transform: scale(0.95); opacity: 0.95; }
@@ -176,4 +281,68 @@ button, a, input, select {
 /* Safe areas */
 .safe-pb {
   padding-bottom: max(env(safe-area-inset-bottom, 80px), 80px);
+}
+
+/* Keep the primary discovery flow calm and scannable on small screens. */
+@media (max-width: 639px) {
+  /* On phones, Ask AI is already available in the bottom navigation. */
+  #floating-chat-trigger {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  .ambient-blob,
+  #theme-toggle-btn,
+  #header-subtitle,
+  header .uppercase {
+    display: none !important;
+  }
+
+  header > div {
+    min-height: 52px;
+  }
+
+  #hero-description,
+  #current-location-pill > span:last-child {
+    display: none;
+  }
+
+  #disease-search-form .theme-card {
+    box-shadow: none;
+  }
+
+  .quick-chip:nth-child(n + 5) {
+    display: none;
+  }
+
+  #ai-intent-section .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #ai-intent-section .grid > :last-child {
+    grid-column: 1 / -1;
+  }
+
+  #hospitals-grid {
+    gap: 10px;
+  }
+
+  #hospitals-grid article {
+    border-radius: 16px;
+    padding: 12px;
+  }
+
+  #hospitals-grid article .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobile-bottom-nav button,
+  .mobile-bottom-nav a {
+    min-height: 48px;
+  }
 }
