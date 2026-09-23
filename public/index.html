@@ -1157,7 +1157,9 @@
           resultsMapSection.classList.remove("hidden");
           if (typeof initOrUpdateMap === "function") initOrUpdateMap();
         };
-        new MutationObserver(revealMap).observe(hospitalsGrid, { childList: true });
+        new MutationObserver(revealMap).observe(hospitalsGrid, {
+          childList: true,
+        });
         revealMap();
       }
     </script>

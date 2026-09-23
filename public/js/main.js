@@ -545,9 +545,8 @@ async function performDiseaseSearch(query, scrollResults = false) {
         renderAIIntentSection(data.intent, data.searchLocation);
         applyFiltersAndSort();
 
-        if (appState.activeView === 'map') {
-            initOrUpdateMap();
-        }
+        document.getElementById('results-map-section')?.classList.remove('hidden');
+        initOrUpdateMap();
 
         if (scrollResults) {
             const intentSection = document.getElementById('ai-intent-section');
