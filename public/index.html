@@ -1148,6 +1148,18 @@
     <script src="js/chat.js"></script>
     <script>
       lucide.createIcons();
+
+      const resultsMapSection = document.getElementById("results-map-section");
+      const hospitalsGrid = document.getElementById("hospitals-grid");
+      if (resultsMapSection && hospitalsGrid) {
+        const revealMap = () => {
+          if (!hospitalsGrid.children.length) return;
+          resultsMapSection.classList.remove("hidden");
+          if (typeof initOrUpdateMap === "function") initOrUpdateMap();
+        };
+        new MutationObserver(revealMap).observe(hospitalsGrid, { childList: true });
+        revealMap();
+      }
     </script>
   </body>
 </html>
