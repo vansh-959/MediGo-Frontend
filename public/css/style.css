@@ -1,93 +1,174 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Light Theme Variables */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.92);
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border-subtle: #e2e8f0;
+  --border-active: #0284c7;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-soft: #94a3b8;
+  --shadow-card: 0 2px 12px -2px rgba(15, 23, 42, 0.08);
+  --shadow-elevated: 0 10px 28px -4px rgba(15, 23, 42, 0.12);
+  --primary-accent: #0284c7;
+  --primary-light: #e0f2fe;
+}
+
+.dark {
+  /* Dark Theme Variables */
+  --bg-app: #060b14;
+  --bg-surface: #0b1324;
+  --bg-glass: rgba(11, 19, 36, 0.92);
+  --bg-card: #0f1a30;
+  --bg-card-hover: #162444;
+  --border-subtle: #1e293b;
+  --border-active: #38bdf8;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-soft: #64748b;
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  --shadow-elevated: 0 16px 36px -4px rgba(0, 0, 0, 0.6);
+  --primary-accent: #38bdf8;
+  --primary-light: rgba(56, 189, 248, 0.15);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-body);
-  background-color: #060b13;
-  color: #f1f5f9;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  transition: background-color 0.2s ease, color 0.2s ease;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
 
-/* Custom Glassmorphism Classes */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Glass Panels with Theme Support */
+.theme-glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-color: var(--border-subtle);
 }
 
-.glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.theme-card {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-panel-hover:hover {
-  background: rgba(30, 41, 59, 0.75);
-  border-color: rgba(56, 189, 248, 0.3);
-  box-shadow: 0 12px 32px -8px rgba(14, 165, 233, 0.2);
-  transform: translateY(-3px);
+.theme-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
 }
 
-.glass-card-selected {
-  background: rgba(14, 165, 233, 0.12);
-  border-color: rgba(56, 189, 248, 0.6);
-  box-shadow: 0 0 24px rgba(14, 165, 233, 0.25);
+.theme-card-selected {
+  border-color: var(--primary-accent) !important;
+  box-shadow: 0 0 20px var(--primary-light) !important;
 }
 
-.neon-text-cyan {
-  text-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
-}
-
-.neon-border-cyan {
-  box-shadow: 0 0 20px -3px rgba(14, 165, 233, 0.4);
-}
-
-/* Animated Gradient Glow */
-.gradient-blob {
+/* Ambient Blobs */
+.ambient-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.45;
+  filter: blur(100px);
   pointer-events: none;
   z-index: 0;
-  animation: float-slow 12s ease-in-out infinite alternate;
+  animation: float-ambient 14s ease-in-out infinite alternate;
 }
 
-@keyframes float-slow {
+.dark .ambient-blob-1 { background: #0284c7; opacity: 0.22; }
+.dark .ambient-blob-2 { background: #4f46e5; opacity: 0.18; }
+.dark .ambient-blob-3 { background: #059669; opacity: 0.16; }
+
+html:not(.dark) .ambient-blob-1 { background: #38bdf8; opacity: 0.30; }
+html:not(.dark) .ambient-blob-2 { background: #818cf8; opacity: 0.25; }
+html:not(.dark) .ambient-blob-3 { background: #34d399; opacity: 0.20; }
+
+@keyframes float-ambient {
   0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(30px, -40px) scale(1.1); }
-  100% { transform: translate(-20px, 20px) scale(0.95); }
+  50% { transform: translate(25px, -30px) scale(1.06); }
+  100% { transform: translate(-20px, 15px) scale(0.95); }
 }
 
-/* Custom Scrollbar */
+/* Mobile Touch targets & inputs */
+button, a, input, select {
+  touch-action: manipulation;
+  min-height: 40px;
+}
+
+/* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--border-subtle);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #38bdf8;
+  background: var(--primary-accent);
 }
 
-/* Pulse Badge Animation */
-@keyframes pulse-ring {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 0.4; }
-  100% { transform: scale(0.95); opacity: 0.8; }
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.animate-pulse-ring {
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+/* Mobile Fixed Bottom Navigation */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-subtle);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  padding-bottom: max(env(safe-area-inset-bottom, 6px), 6px);
+}
+
+/* Pulsing Badge Indicator */
+@keyframes ring-pulse {
+  0% { transform: scale(0.95); opacity: 0.95; }
+  50% { transform: scale(1.2); opacity: 0.35; }
+  100% { transform: scale(0.95); opacity: 0.95; }
+}
+
+.ring-pulse-active {
+  animation: ring-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Safe areas */
+.safe-pb {
+  padding-bottom: max(env(safe-area-inset-bottom, 80px), 80px);
 }
