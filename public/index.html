@@ -151,6 +151,17 @@
               >Sign In</span
             >
           </a>
+
+          <!-- Logout Button (Shown when logged in) -->
+          <button
+            type="button"
+            id="logout-btn"
+            title="Sign Out"
+            class="hidden px-2 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold items-center gap-1 transition-all"
+          >
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline text-[11px]">Logout</span>
+          </button>
         </div>
       </div>
     </header>
@@ -642,17 +653,39 @@
           >
         </div>
 
-        <!-- Sorting Dropdown -->
-        <select
-          id="sort-select"
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white text-[11px] rounded-lg px-2 py-1 focus:outline-none focus:border-sky-500 font-semibold shadow-sm"
-        >
-          <option value="rank">Best Match</option>
-          <option value="distance">Nearest</option>
-          <option value="cost">Lowest Cost</option>
-          <option value="beds">Most Beds</option>
-          <option value="rating">Top Rated</option>
-        </select>
+        <div class="flex items-center gap-2">
+          <!-- View Toggle (Cards vs Map) -->
+          <div class="flex items-center p-0.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+            <button
+              type="button"
+              id="view-cards-btn"
+              class="px-2.5 py-1 rounded-lg bg-sky-500 text-white font-bold text-[11px] flex items-center gap-1 transition-all"
+            >
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">Cards</span>
+            </button>
+            <button
+              type="button"
+              id="view-map-btn"
+              class="px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-400 font-semibold text-[11px] flex items-center gap-1 transition-all hover:text-sky-500"
+            >
+              <i data-lucide="map" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">Map</span>
+            </button>
+          </div>
+
+          <!-- Sorting Dropdown -->
+          <select
+            id="sort-select"
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white text-[11px] rounded-lg px-2 py-1 focus:outline-none focus:border-sky-500 font-semibold shadow-sm"
+          >
+            <option value="rank">Best Match</option>
+            <option value="distance">Nearest</option>
+            <option value="cost">Lowest Cost</option>
+            <option value="beds">Most Beds</option>
+            <option value="rating">Top Rated</option>
+          </select>
+        </div>
       </div>
 
       <!-- Cards Container -->
@@ -675,6 +708,15 @@
       >
         <i data-lucide="compass" class="w-4 h-4"></i>
         <span>Discover</span>
+      </button>
+
+      <button
+        type="button"
+        id="mob-nav-map"
+        class="flex flex-col items-center gap-0.5 text-slate-500 dark:text-slate-400 font-medium text-[10px] w-1/5"
+      >
+        <i data-lucide="map" class="w-4 h-4"></i>
+        <span>Map</span>
       </button>
 
       <a
