@@ -217,18 +217,6 @@ button, a, input, select {
     min-height: 44px;
   }
 
-  .auth-page > main > section {
-    min-width: 0;
-  }
-
-  .auth-page #auth-form,
-  .auth-page #auth-form > div,
-  .auth-page #auth-form input {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
 }
 
 /* Keep the chat drawer above Leaflet's panes, controls, and markers. */

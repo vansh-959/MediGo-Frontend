@@ -1,18 +1,16 @@
 /* MediGo offline-first app shell. Bump CACHE_VERSION when changing the shell. */
-const CACHE_VERSION = "medigo-pwa-v22";
+const CACHE_VERSION = "medigo-pwa-v25";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
 const LOCAL_CORE_ASSETS = [
   "./",
   "./index.html",
-  "./auth.html",
   "./results.html",
   "./offline.html",
   "./manifest.json",
   "./css/style.css",
   "./js/config.js",
-  "./js/auth.js",
   "./js/i18n.js",
   "./js/main.js",
   "./js/chat.js",
@@ -123,7 +121,7 @@ async function networkFirstPage(request) {
 }
 
 function isCacheablePage(url) {
-  return ["./", "./index.html", "./auth.html", "./results.html", "./emergency.html", "./compare.html", "./offline.html"]
+  return ["./", "./index.html", "./results.html", "./emergency.html", "./compare.html", "./offline.html"]
     .some((path) => new URL(localUrl(path)).pathname === url.pathname);
 }
 
@@ -158,7 +156,7 @@ async function networkFirstApi(request) {
 
 function isCacheableApi(request) {
   // Only public hospital directory responses are persisted. Never cache admin,
-  // account, report, review, or other potentially sensitive API responses.
+  // report, review, or other potentially sensitive API responses.
   return new URL(request.url).pathname === "/api/hospitals";
 }
 

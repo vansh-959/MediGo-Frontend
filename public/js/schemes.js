@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else { status.textContent = 'Enable location or enter your city to see schemes.'; return; }
     status.textContent = 'Loading scheme information…'; results.replaceChildren();
     try {
-      const response = await fetch(`${api}/api/schemes?${params}`, { headers: { Authorization: `Bearer ${localStorage.getItem('medigo_auth_token') || ''}` } }); const data = await response.json();
+      const response = await fetch(`${api}/api/schemes?${params}`); const data = await response.json();
       if (!response.ok || !data.success) throw new Error(data.error || 'Could not load schemes.');
       cityInput.value = data.city || cityInput.value;
       status.textContent = `${data.city}${data.state ? `, ${data.state}` : ''} · scheme references; check official eligibility.`;

@@ -66,9 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
         params.set("lat", String(position.coords.latitude)); params.set("lng", String(position.coords.longitude));
       }
 
-      const token = localStorage.getItem("medigo_auth_token");
       const headers = { "Content-Type": selectedFile.type };
-      if (token) headers.Authorization = `Bearer ${token}`;
       const response = await fetch(`${window.MEDIGO_API_BASE}/api/reports/analyze?${params}`, {
         method: "POST",
         headers,
@@ -78,13 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success) {
-        if (response.status === 401) {
-          localStorage.removeItem("medigo_auth_token");
-          localStorage.removeItem("medigo_user");
-          const error = new Error("Your session expired. Sign in again, then analyze the report.");
-          error.authRequired = true;
-          throw error;
-        }
         throw new Error(data.error || t("reportCouldNotReach"));
       }
       syncDirectoryAndMap(data.hospitals || [], data.analysis);
@@ -98,13 +89,10 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       status.textContent = error.name === "TimeoutError"
         ? t("reportTimeout")
-        : error.authRequired
-          ? error.message
         : (error.message?.includes("GEMINI_API_KEY") || error.message?.includes("configured")
           ? t("reportCouldNotReach")
           : error.message || t("reportCouldNotReach"));
       status.className = "mt-2 text-xs font-semibold text-rose-700";
-      if (error.authRequired) window.openMediGoAuth?.();
     } finally {
       analyzeButton.disabled = !selectedFile;
       analyzeButton.querySelector("span").textContent = t("analyzeReport");

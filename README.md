@@ -13,12 +13,11 @@ cd MediGo-Frontend
 python3 -m http.server 8080 --directory public
 ```
 
-Then open `http://localhost:8080`. Search and account features need the backend.
+Then open `http://localhost:8080`. Hospital search, cost estimates, scheme lookup, chat, and report reading use the backend. No account is required.
 
 ## Main pages
 
 - `public/index.html` — hospital search, maps, cost estimator, schemes, and report reader.
-- `public/auth.html` — OTP login and signup.
 - `public/emergency.html` — public emergency help and nearby hospital options. It does not dispatch an ambulance.
 - `public/results.html` — hospital search results.
 - `public/compare.html` — compare saved hospitals.

@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const response = await fetch(`${apiBase}/api/cost-estimate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("medigo_auth_token") || ""}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
@@ -111,7 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
       status.textContent = t("estimateReady");
       status.className = "mt-2 text-xs font-semibold text-emerald-700";
     } catch (error) {
-      if (error.status === 401) window.openMediGoAuth?.("Please sign in again to continue.");
       lastEstimateData = null;
       lastEstimateFailed = true;
       status.textContent = error.suggestions?.length

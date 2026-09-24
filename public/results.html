@@ -12,24 +12,13 @@
   let currentHospitals = [];
   let currentSpecialty = '';
   let currentFallback = false;
-  let activeFilter = params.get('filter') === 'saved' && localStorage.getItem('medigo_auth_token') ? 'saved' : 'all';
+  let activeFilter = params.get('filter') === 'saved' ? 'saved' : 'all';
   let resultsMap = null;
   let mapMarkers = null;
-  if (lat != null && lng != null && sortSelect) sortSelect.value = 'nearest';
+  if ((lat != null && lng != null || city) && sortSelect) sortSelect.value = 'nearest';
   const readStored = (key, fallback) => { try { const value = JSON.parse(localStorage.getItem(key) || ''); return value ?? fallback; } catch { return fallback; } };
-  const requireAccount = () => {
-    if (localStorage.getItem('medigo_auth_token')) return true;
-    localStorage.setItem('medigo_auth_return_to', location.href);
-    location.href = 'index.html#signin';
-    return false;
-  };
   label.textContent = query ? `You searched: ${query}${city ? ` · ${city}` : ''}` : 'No search entered';
   if (!query) { status.textContent = 'Go back and enter a symptom or condition.'; return; }
-  if (!localStorage.getItem('medigo_auth_token')) {
-    localStorage.setItem('medigo_auth_return_to', location.href);
-    location.href = 'index.html#signin';
-    return;
-  }
 
   const specialtyFor = (value) => {
     const text = value.toLowerCase();
@@ -94,7 +83,6 @@
     intent.classList.remove('hidden');
     box.innerHTML = hospitals.map((h, index) => `<article class="overflow-hidden rounded-2xl border bg-white shadow-sm"><img src="${h.image && /^https:\/\//i.test(h.image) ? esc(h.image) : ''}" alt="${esc(h.name)}" class="h-44 w-full object-cover" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.classList.remove('hidden')"><div class="hidden h-44 w-full items-center justify-center bg-sky-50 text-sky-700"><span class="text-4xl" aria-hidden="true">🏥</span><span class="sr-only">Hospital image unavailable</span></div><div class="p-4"><h2 class="font-extrabold">${esc(h.name)}</h2><p class="mt-1 text-sm text-slate-600">${esc(h.location || h.city || '')} ${Number.isFinite(h.distanceKm) ? `· ${h.distanceKm.toFixed(1)} km` : ''}</p><p class="mt-1 text-xs text-slate-500">${esc((h.specialties || []).join(', '))}</p><p class="mt-1 text-xs font-semibold text-slate-700">★ ${Number.isFinite(h.rating) ? h.rating : 'Rating unavailable'} · ${h.estimatedTreatmentCost?.min != null ? `from ₹${Number(h.estimatedTreatmentCost.min).toLocaleString('en-IN')}` : h.avgConsultationCost != null ? `consultation ₹${Number(h.avgConsultationCost).toLocaleString('en-IN')}` : 'Cost not listed'}</p><div class="mt-3 flex flex-wrap gap-2">${h.phone ? `<a class="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white" href="tel:${String(h.phone).replace(/[^+\d]/g, '')}">Call hospital</a>` : ''}${h.mapUrl && h.mapUrl.startsWith('https://www.google.com/maps/') ? `<a class="rounded-lg bg-sky-700 px-3 py-2 text-sm font-bold text-white" href="${esc(h.mapUrl)}" target="_blank" rel="noopener">Directions</a>` : ''}<button class="rounded-lg bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700" data-save-index="${index}">${savedIds.includes(h.id) ? '♥ Saved' : '♡ Save'}</button><button class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold" data-compare-index="${index}" aria-pressed="${comparedIds.includes(h.id)}">${comparedIds.includes(h.id) ? '✓ Added' : 'Compare'}</button></div></div></article>`).join('') || '<p class="rounded-xl bg-white p-4">No hospitals listed for this search area. Try another city.</p>';
     box.querySelectorAll('[data-save-index]').forEach(button => button.addEventListener('click', () => {
-      if (!requireAccount()) return;
       const hospital = hospitals[Number(button.dataset.saveIndex)];
       const ids = readStored('medigo_saved_hospitals', []);
       const records = readStored('medigo_saved_hospital_data', {});
@@ -107,7 +95,6 @@
       render(currentHospitals, currentSpecialty, currentFallback);
     }));
     box.querySelectorAll('[data-compare-index]').forEach(button => button.addEventListener('click', () => {
-      if (!requireAccount()) return;
       const h = hospitals[Number(button.dataset.compareIndex)]; const id = h?.id || h?.placeId; if (!id) return;
       const storedIds = readStored('med_compare_ids', []); const records = readStored('med_compare_hospitals', {});
       if (!Array.isArray(storedIds) || !records || typeof records !== 'object' || Array.isArray(records)) return;
@@ -129,13 +116,6 @@
   };
   sortSelect?.addEventListener('change', () => render(currentHospitals, currentSpecialty, currentFallback));
   const chooseFilter = (filter) => {
-    if (filter === 'saved' && !localStorage.getItem('medigo_auth_token')) {
-      const returnTo = new URL(location.href);
-      returnTo.searchParams.set('filter', 'saved');
-      localStorage.setItem('medigo_auth_return_to', returnTo.href);
-      location.href = 'index.html#signin';
-      return;
-    }
     activeFilter = filter;
     document.querySelectorAll('[data-results-filter]').forEach(button => {
       const selected = button.dataset.resultsFilter === filter;
@@ -163,14 +143,17 @@
   try {
     let data;
     try {
-      const response = await fetch(`${MEDIGO_API_BASE}/api/hospitals/search`, {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('medigo_auth_token') || ''}`}, body:JSON.stringify({query, city, lat:lat == null ? undefined : Number(lat), lng:lng == null ? undefined : Number(lng)}), signal:AbortSignal.timeout(25000)});
+      const response = await fetch(`${MEDIGO_API_BASE}/api/hospitals/search`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({query, city, lat:lat == null ? undefined : Number(lat), lng:lng == null ? undefined : Number(lng)}), signal:AbortSignal.timeout(25000)});
       data = await response.json();
       if (!response.ok || !data.success) throw new Error('Search service unavailable');
       render(data.hospitals || [], data.intent?.specialty || specialtyFor(query));
     } catch (searchError) {
+      if (!city && (lat == null || lng == null)) {
+        throw new Error('Allow location access or enter a city to sort nearby hospitals.');
+      }
       const directoryParams = new URLSearchParams();
       if (city) directoryParams.set('city', city);
-      else if (lat != null && lng != null) { directoryParams.set('lat', lat); directoryParams.set('lng', lng); }
+      if (lat != null && lng != null) { directoryParams.set('lat', lat); directoryParams.set('lng', lng); }
       const directoryUrl = `${MEDIGO_API_BASE}/api/hospitals${directoryParams.size ? `?${directoryParams}` : ''}`;
       const response = await fetch(directoryUrl, {headers:{Accept:'application/json'}, signal:AbortSignal.timeout(15000)});
       const directory = await response.json();
@@ -178,15 +161,17 @@
       const specialty = specialtyFor(query);
       let hospitals = (directory.hospitals || []).filter(h => specialty === 'General Medicine' || (h.specialties || []).join(' ').toLowerCase().includes(specialty.toLowerCase()));
       if (!hospitals.length && specialty !== 'General Medicine') hospitals = directory.hospitals || [];
-      if (!city && lat != null && lng != null) {
+      if (lat != null && lng != null) {
         const rad = n => n * Math.PI / 180;
         const km = h => { const a=Number(h.lat ?? h.coordinates?.lat), o=Number(h.lon ?? h.coordinates?.lng); if(!Number.isFinite(a)||!Number.isFinite(o)) return Infinity; const dl=rad(a-Number(lat)), dn=rad(o-Number(lng)); const x=Math.sin(dl/2)**2+Math.cos(rad(Number(lat)))*Math.cos(rad(a))*Math.sin(dn/2)**2; return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); };
         hospitals = hospitals.map(h => ({...h,distanceKm:km(h)})).sort((a,b)=>a.distanceKm-b.distanceKm);
+      } else if (city) {
+        hospitals.sort((a,b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
       }
       render(hospitals, specialty, true);
     }
   } catch (error) {
-    status.textContent = 'Hospitals could not be loaded right now. Check your connection and try again.';
+    status.textContent = error.message || 'Hospitals could not be loaded right now. Check your connection and try again.';
     status.className = 'mt-3 text-sm font-bold text-rose-700';
   }
   window.lucide?.createIcons();

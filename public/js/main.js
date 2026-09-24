@@ -179,7 +179,7 @@ function initEventListeners() {
             e.preventDefault();
             const input = document.getElementById('disease-search-input');
             const query = input?.value.trim();
-            if (query) openResultsPage(query, document.getElementById('city-override-input')?.value.trim() || '', appState.userCoords);
+            if (query) void openNearestResults(query);
         });
     }
 
@@ -190,7 +190,7 @@ function initEventListeners() {
             const input = document.getElementById('disease-search-input');
             if (input && diseaseQuery) {
                 input.value = diseaseQuery;
-                openResultsPage(diseaseQuery, document.getElementById('city-override-input')?.value.trim() || '', appState.userCoords);
+                void openNearestResults(diseaseQuery);
             }
         });
     });
@@ -547,7 +547,7 @@ function startVoiceRecognition() {
         const input = document.getElementById('disease-search-input');
         if (input) {
             input.value = transcript;
-            openResultsPage(transcript, document.getElementById('city-override-input')?.value.trim() || '', appState.userCoords);
+            void openNearestResults(transcript);
         }
     };
 
@@ -567,10 +567,31 @@ function startVoiceRecognition() {
     recognition.start();
 }
 
+async function openNearestResults(query) {
+    const city = document.getElementById('city-override-input')?.value.trim() || '';
+    let coords = appState.userCoords;
+    if (city) {
+        coords = await resolveCityCenter(city);
+        appState.searchCenterCoords = coords;
+    } else if (!coords) {
+        try {
+            coords = await requestCurrentCoordinates();
+            appState.userCoords = coords;
+            const locationText = document.getElementById('current-location-text');
+            if (locationText) locationText.textContent = 'GPS location active · nearby hospitals will be shown nearest first';
+        } catch (error) {
+            const locationText = document.getElementById('current-location-text');
+            if (locationText) locationText.textContent = `${error.message} Enter a city to sort nearby hospitals.`;
+            if (!city) return;
+        }
+    }
+    openResultsPage(query, city, coords);
+}
+
 function openResultsPage(query, city = "", coords = null) {
     const params = new URLSearchParams({ q: query });
     if (city) params.set("city", city);
-    if (!city && coords && Number.isFinite(Number(coords.lat)) && Number.isFinite(Number(coords.lon ?? coords.lng))) {
+    if (coords && Number.isFinite(Number(coords.lat)) && Number.isFinite(Number(coords.lon ?? coords.lng))) {
         params.set("lat", String(coords.lat));
         params.set("lng", String(coords.lon ?? coords.lng));
     }
@@ -724,6 +745,19 @@ async function performDiseaseSearch(query, scrollResults = false) {
     const cityInput = document.getElementById('city-override-input');
     const cityOverride = cityInput?.value.trim() || '';
     appState.searchCenterCoords = cityOverride ? await resolveCityCenter(cityOverride) : null;
+    if (!cityOverride && !appState.userCoords) {
+        try {
+            appState.userCoords = await requestCurrentCoordinates();
+        } catch (locationError) {
+            showNotificationToast('Location needed', `${locationError.message} Enter a city or allow location access.`, 'error');
+            return;
+        }
+    }
+    if (appState.userCoords || appState.searchCenterCoords || cityOverride) {
+        appState.sortBy = 'distance';
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) sortSelect.value = 'distance';
+    }
     if (appState.searchCenterCoords) {
         appState.detectedLocationName = `${appState.searchCenterCoords.city} city center (approx.)`;
         appState.sortBy = 'distance';
@@ -755,12 +789,12 @@ async function performDiseaseSearch(query, scrollResults = false) {
     try {
         const res = await fetch(`${API_BASE}/api/hospitals/search`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('medigo_auth_token') || ''}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 query: cleanQuery,
                 city: cityOverride,
-                lat: appState.userCoords?.lat,
-                lon: appState.userCoords?.lon
+                lat: (appState.userCoords || appState.searchCenterCoords)?.lat,
+                lon: (appState.userCoords || appState.searchCenterCoords)?.lon ?? (appState.userCoords || appState.searchCenterCoords)?.lng
             })
         });
 
@@ -1468,7 +1502,7 @@ function initReviewsModal() {
       try {
         const res = await fetch(`${API_BASE}/api/reviews`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('medigo_auth_token') || ''}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             hospitalId,
             hospitalName,
@@ -1480,7 +1514,6 @@ function initReviewsModal() {
         });
 
         const data = await res.json().catch(() => ({}));
-        if (res.status === 401) { window.openMediGoAuth?.('Sign in to submit a hospital review.'); return; }
         if (data.success) {
           showNotificationToast('⭐ Review Submitted!', `Thank you ${userName}! Your review for ${hospitalName} has been published.`);
           document.getElementById('review-comment').value = '';

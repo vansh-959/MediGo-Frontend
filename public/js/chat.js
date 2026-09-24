@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const response = await fetch(`${apiBase}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("medigo_auth_token") || ""}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, city, location, language: window.MEDIGO_LANGUAGE || "en", history: chatHistory.slice(-8) }),
         signal: AbortSignal.timeout(40000),
       });
@@ -98,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
       removeTypingIndicator(typingId);
 
       if (!response.ok || !data.success || !data.reply) {
-        if (response.status === 401) window.openMediGoAuth?.("Please sign in again to continue.");
         appendMessage("ai", data.error || "MediGo AI could not answer right now. Please try again.");
         return;
       }
