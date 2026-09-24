@@ -40,6 +40,7 @@ let appState = {
     sortBy: 'rank',
     currentQuery: '',
     userCoords: null,
+    searchCenterCoords: null,
     detectedLocationName: 'Chandigarh Region',
     savedHospitalRecords: loadSavedHospitalRecords(),
     currentIntent: null,
@@ -64,7 +65,7 @@ const TRANSLATIONS = {
         heroTitleHighlight: "your exact illness",
         heroDescription: "Search the hospital directory by condition, location, or budget. Call hospitals to confirm current services and availability.",
         inputPlaceholder: "Type disease or condition, e.g. Kidney treatment under 2 lakh in Chandigarh...",
-        searchBtn: "Find Best Nearest Hospitals",
+        searchBtn: "Search",
         quickLabel: "Quick Condition Shortcuts (Tap to Search)",
         resultsTitle: "Recommended Nearest Hospitals",
         locateText: "Using GPS Location",
@@ -77,7 +78,7 @@ const TRANSLATIONS = {
         heroTitleHighlight: "सबसे सही और नजदीकी अस्पताल",
         heroDescription: "बीमारी, लोकेशन या बजट से अस्पतालों की सूची खोजें। मौजूदा सेवाओं और उपलब्धता की पुष्टि अस्पताल से करें।",
         inputPlaceholder: "अपनी बीमारी लिखें, जैसे: 2 लाख में चंडीगढ़ में पथरी का इलाज, दिल का दर्द...",
-        searchBtn: "नजदीकी अस्पताल खोजें",
+        searchBtn: "खोजें",
         quickLabel: "त्वरित रोग शॉर्टकट (टैप करके खोजें)",
         resultsTitle: "अनुशंसित नजदीकी अस्पताल",
         locateText: "वर्तमान जीपीएस स्थान सक्रिय",
@@ -90,7 +91,7 @@ const TRANSLATIONS = {
         heroTitleHighlight: "sahi hospital",
         heroDescription: "Bimari, location ya budget ke hisaab se hospital khojein. Jaane se pehle services aur availability confirm karein.",
         inputPlaceholder: "Bimari likhein, jaise kidney treatment ya chest pain...",
-        searchBtn: "Paas ke hospitals khojein",
+        searchBtn: "Search",
         quickLabel: "Jaldi search ke liye bimari chunein",
         resultsTitle: "Sujhaye gaye paas ke hospitals",
         locateText: "GPS location use ho rahi hai",
@@ -103,7 +104,7 @@ const TRANSLATIONS = {
         heroTitleHighlight: "ਸਭ ਤੋਂ ਵਧੀਆ ਅਤੇ ਨੇੜਲਾ ਹਸਪਤਾਲ",
         heroDescription: "ਬਿਮਾਰੀ, ਥਾਂ ਜਾਂ ਬਜਟ ਨਾਲ ਹਸਪਤਾਲਾਂ ਦੀ ਸੂਚੀ ਖੋਜੋ। ਮੌਜੂਦਾ ਸੇਵਾਵਾਂ ਅਤੇ ਉਪਲਬਧਤਾ ਦੀ ਪੁਸ਼ਟੀ ਹਸਪਤਾਲ ਤੋਂ ਕਰੋ।",
         inputPlaceholder: "ਆਪਣੀ ਬਿਮਾਰੀ ਲਿਖੋ, ਜਿਵੇਂ: ਗੁਰਦੇ ਦੀ ਪੱਥਰੀ ਦਾ ਇਲਾਜ, ਦਿਲ ਦੀ ਬਿਮਾਰੀ...",
-        searchBtn: "ਨੇੜਲੇ ਹਸਪਤਾਲ ਲੱਭੋ",
+        searchBtn: "ਖੋਜੋ",
         quickLabel: "ਤੁਰੰਤ ਬਿਮਾਰੀ ਸ਼ਾਰਟਕੱਟ (ਟੈਪ ਕਰਕੇ ਲੱਭੋ)",
         resultsTitle: "ਸਿਫਾਰਸ਼ ਕੀਤੇ ਨੇੜਲੇ ਹਸਪਤਾਲ",
         locateText: "ਮੌਜੂਦਾ GPS ਲੋਕੇਸ਼ਨ ਸਰਗਰਮ",
@@ -119,8 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initReviewsModal();
     if (location.hash === '#saved') document.querySelector('.filter-chip[data-filter="saved"]')?.click();
 
-    // Populate nearby hospital cards and the map as soon as the page opens.
-    loadInitialNearbyHospitals();
+    // Hospital search is started only after the visitor submits a query.
 });
 
 window.addEventListener('medigo:languagechange', (event) => {
@@ -259,11 +259,19 @@ function initEventListeners() {
     const mobNavDiscover = document.getElementById('mob-nav-discover');
     const mobNavMap = document.getElementById('mob-nav-map');
     const mobNavCompare = document.getElementById('mob-nav-compare');
+    const mobNavCost = document.getElementById('mob-nav-cost');
     const mobNavReportReader = document.getElementById('mob-nav-report-reader');
     const mobNavChat = document.getElementById('mob-nav-chat');
+    const mobNavMore = document.getElementById('mob-nav-more');
+    const mobileMoreMenu = document.getElementById('mobile-more-menu');
+    const closeMobileMoreMenu = () => {
+        mobileMoreMenu?.classList.add('hidden');
+        mobNavMore?.setAttribute('aria-expanded', 'false');
+    };
 
     if (mobNavDiscover) {
         mobNavDiscover.addEventListener('click', () => {
+            closeMobileMoreMenu();
             switchView('cards');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             updateMobNavActive('mob-nav-discover');
@@ -272,9 +280,48 @@ function initEventListeners() {
 
     if (mobNavMap) {
         mobNavMap.addEventListener('click', async () => {
+            closeMobileMoreMenu();
             switchView('map');
-            if (!appState.hospitals.length) {
-                await loadNearbyHospitals(appState.userCoords || null);
+            const mapStatus = document.getElementById('map-status');
+            const locationText = document.getElementById('current-location-text');
+            const typedCity = document.getElementById('city-override-input')?.value.trim() || '';
+            if (mapStatus) mapStatus.textContent = 'Finding your location and nearby hospitals…';
+            try {
+                if (!appState.userCoords) {
+                    try {
+                        const coords = await requestCurrentCoordinates();
+                        appState.userCoords = coords;
+                        appState.searchCenterCoords = null;
+                        appState.sortBy = 'distance';
+                        const sortSelect = document.getElementById('sort-select');
+                        if (sortSelect) sortSelect.value = 'distance';
+                        const cityInput = document.getElementById('city-override-input');
+                        if (cityInput) cityInput.value = '';
+                        if (locationText) locationText.textContent = 'GPS location active · hospitals sorted by distance';
+                    } catch (locationError) {
+                        if (!typedCity) throw locationError;
+                        appState.searchCenterCoords = await resolveCityCenter(typedCity);
+                        if (locationText) locationText.textContent = appState.searchCenterCoords
+                            ? `GPS unavailable · approximate distances from ${appState.searchCenterCoords.city} city center`
+                            : `${locationError.message} Showing hospitals in ${typedCity}.`;
+                    }
+                }
+                const city = appState.userCoords ? '' : typedCity;
+                const referenceCoords = appState.userCoords || appState.searchCenterCoords;
+                const directory = await searchPublicHospitalDirectory('', city, referenceCoords);
+                appState.hospitals = directory.hospitals;
+                rememberSavedHospitalRecords(appState.hospitals);
+                appState.detectedLocationName = appState.userCoords ? 'Your location' : appState.searchCenterCoords ? `${appState.searchCenterCoords.city} city center (approx.)` : city || 'All listed locations';
+                appState.selectedFilter = 'all';
+                if (referenceCoords) {
+                    appState.sortBy = 'distance';
+                    const sortSelect = document.getElementById('sort-select');
+                    if (sortSelect) sortSelect.value = 'distance';
+                }
+                applyFiltersAndSort();
+                if (mapStatus) mapStatus.textContent = `${appState.hospitals.length} hospitals · ${referenceCoords ? 'nearest first' : city ? `in ${city}` : 'enable location for distance sorting'}`;
+            } catch (error) {
+                if (mapStatus) mapStatus.textContent = `${error.message || 'Location unavailable.'} Enter a city in the search box, then tap Nearby again.`;
             }
             document.getElementById('results-map-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             updateMobNavActive('mob-nav-map');
@@ -283,12 +330,20 @@ function initEventListeners() {
 
     if (mobNavCompare) {
         mobNavCompare.addEventListener('click', () => {
+            closeMobileMoreMenu();
             location.href = 'compare.html';
         });
     }
 
+    mobNavCost?.addEventListener('click', () => {
+        closeMobileMoreMenu();
+        document.getElementById('cost-estimate-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateMobNavActive('mob-nav-cost');
+    });
+
     if (mobNavReportReader) {
         mobNavReportReader.addEventListener('click', () => {
+            closeMobileMoreMenu();
             document.getElementById('chat-drawer')?.classList.add('translate-x-full');
             document.getElementById('report-reader')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             updateMobNavActive('mob-nav-report-reader');
@@ -297,12 +352,19 @@ function initEventListeners() {
 
     if (mobNavChat) {
         mobNavChat.addEventListener('click', () => {
+            closeMobileMoreMenu();
             const chatDrawer = document.getElementById('chat-drawer');
             chatDrawer?.classList.remove('translate-x-full');
             const chatInput = document.getElementById('chat-input');
             if (chatInput) setTimeout(() => chatInput.focus(), 300);
         });
     }
+
+    mobNavMore?.addEventListener('click', () => {
+        const opening = mobileMoreMenu?.classList.contains('hidden');
+        mobileMoreMenu?.classList.toggle('hidden', !opening);
+        mobNavMore.setAttribute('aria-expanded', String(Boolean(opening)));
+    });
 
     // GPS Locate Me Button
     const locateBtn = document.getElementById('locate-me-btn');
@@ -378,16 +440,14 @@ function initEventListeners() {
 }
 
 function updateMobNavActive(activeId) {
-    const ids = ['mob-nav-discover', 'mob-nav-map', 'mob-nav-compare', 'mob-nav-report-reader', 'mob-nav-chat'];
+    const ids = ['mob-nav-discover', 'mob-nav-map', 'mob-nav-cost', 'mob-nav-report-reader', 'mob-nav-more'];
     ids.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         if (id === activeId) {
-            el.classList.add('text-sky-600', 'dark:text-sky-400', 'font-bold');
-            el.classList.remove('text-slate-500', 'dark:text-slate-400', 'font-medium');
+            el.classList.add('active');
         } else {
-            el.classList.remove('text-sky-600', 'dark:text-sky-400', 'font-bold');
-            el.classList.add('text-slate-500', 'dark:text-slate-400', 'font-medium');
+            el.classList.remove('active');
         }
     });
 }
@@ -412,7 +472,6 @@ function switchView(viewName) {
         viewCardsBtn?.classList.remove('bg-sky-500', 'text-white', 'font-bold');
         viewCardsBtn?.classList.add('text-slate-600', 'dark:text-slate-400');
         mapSection?.classList.remove('hidden');
-        cardsGrid?.classList.add('hidden');
         setTimeout(() => initOrUpdateMap(), 150);
     }
 }
@@ -522,104 +581,36 @@ function openResultsPage(query, city = "", coords = null) {
 // GEOLOCATION
 // =========================================================================
 
-const DEFAULT_HOSPITALS_CENTER = { lat: 30.7333, lng: 76.7794 };
-
-async function loadNearbyHospitals(coordinates = null) {
-    const mapStatus = document.getElementById('map-status');
-    const locationText = document.getElementById('current-location-text');
-    const center = coordinates && Number.isFinite(Number(coordinates.lat)) &&
-        Number.isFinite(Number(coordinates.lon ?? coordinates.lng))
-        ? { lat: Number(coordinates.lat), lng: Number(coordinates.lon ?? coordinates.lng) }
-        : DEFAULT_HOSPITALS_CENTER;
-
-    if (mapStatus) mapStatus.textContent = 'Loading nearby hospitals…';
-    try {
-        const params = new URLSearchParams({
-            lat: String(center.lat),
-            lng: String(center.lng),
-            radiusKm: '50',
-        });
-        let response = await fetch(`${API_BASE}/api/hospitals/nearby?${params}`, {
-            headers: { Accept: 'application/json' },
-            cache: 'no-store',
-            signal: AbortSignal.timeout(26000),
-        });
-        let data = await response.json();
-        if (!response.ok || !data.success || !Array.isArray(data.hospitals) || !data.hospitals.length) {
-            // Older local API builds may not have the nearby route yet.
-            const directoryParams = new URLSearchParams({ lat: String(center.lat), lng: String(center.lng) });
-            response = await fetch(`${API_BASE}/api/hospitals?${directoryParams}`, {
-                headers: { Accept: 'application/json' },
-                cache: 'no-store',
-                signal: AbortSignal.timeout(12000),
-            });
-            data = await response.json();
-            if (!response.ok || !data.success || !Array.isArray(data.hospitals)) {
-                throw new Error(data.error || `Hospital lookup failed (${response.status})`);
+function requestCurrentCoordinates() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error('This browser does not support location.'));
+        if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+            return reject(new Error('Location needs a secure HTTPS connection.'));
+        }
+        const onError = (error) => {
+            if ((error.code === 2 || error.code === 3) && !onError.retried) {
+                onError.retried = true;
+                navigator.geolocation.getCurrentPosition(onSuccess, finalError, { enableHighAccuracy: false, timeout: 12000, maximumAge: 120000 });
+                return;
             }
-        }
-
-        appState.hospitals = data.hospitals
-            .filter((hospital) => !/\b(veterinary|vet hospital|animal hospital|pet hospital)\b/i.test(hospital.name || ''))
-            .slice(0, 24);
-        appState.userCoords = coordinates ? { lat: center.lat, lon: center.lng } : null;
-        appState.detectedLocationName = coordinates ? 'your location' : 'Chandigarh';
-        appState.selectedFilter = 'all';
-        rememberSavedHospitalRecords(appState.hospitals);
-        document.getElementById('results-map-section')?.classList.remove('hidden');
-        applyFiltersAndSort();
-        if (window.L) initOrUpdateMap();
-
-        const count = appState.hospitals.length;
-        if (mapStatus) mapStatus.textContent = `Showing the ${count} nearest hospitals on the map`;
-        if (locationText && !coordinates) {
-            locationText.textContent = 'Showing nearby hospitals for Chandigarh · use location for your area';
-        }
-        return true;
-    } catch (error) {
-        console.error('Nearby hospital load failed:', error);
-        if (mapStatus) mapStatus.textContent = 'Hospitals could not be loaded. Check your connection and try again.';
-        const grid = document.getElementById('hospitals-grid');
-        if (grid) {
-            grid.innerHTML = `<div class="col-span-full py-8 text-center text-sm text-rose-500">Hospitals are temporarily unavailable. Please try again or use the Emergency page.</div>`;
-        }
-        return false;
-    }
-}
-
-function loadInitialNearbyHospitals() {
-    if (!window.isSecureContext || !navigator.geolocation) {
-        void loadNearbyHospitals();
-        return;
-    }
-
-    const locationText = document.getElementById('current-location-text');
-    if (locationText) locationText.textContent = 'Requesting device location for nearby hospitals…';
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const coordinates = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-            };
-            appState.userCoords = { lat: coordinates.lat, lon: coordinates.lng };
-            if (locationText) locationText.textContent = 'Location found · loading nearest hospitals';
-            void loadNearbyHospitals(coordinates);
-        },
-        () => {
-            if (locationText) locationText.textContent = 'Location unavailable · showing Chandigarh hospitals';
-            void loadNearbyHospitals();
-        },
-        { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 },
-    );
+            finalError(error);
+        };
+        const onSuccess = (position) => resolve({ lat: position.coords.latitude, lon: position.coords.longitude });
+        const finalError = (error) => reject(new Error(error.code === 1
+            ? 'Location permission is blocked.'
+            : error.code === 3
+                ? 'Location request timed out.'
+                : 'Your device could not determine a location.'));
+        navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    });
 }
 
 function triggerGeolocation() {
     const locateBtn = document.getElementById('locate-me-btn');
     const locText = document.getElementById('current-location-text');
 
-    if (!navigator.geolocation) {
-        if (locText) locText.textContent = 'Location is not supported · showing nearby hospitals';
-        void loadNearbyHospitals();
+    if (!navigator.geolocation || (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(location.hostname))) {
+        if (locText) locText.textContent = 'Location needs HTTPS or localhost. Open MediGo over HTTPS, or enter your city below.';
         return;
     }
 
@@ -632,6 +623,12 @@ function triggerGeolocation() {
                 lat: position.coords.latitude,
                 lon: position.coords.longitude
             };
+            appState.searchCenterCoords = null;
+            const cityOverride = document.getElementById('city-override-input');
+            if (cityOverride) cityOverride.value = '';
+            appState.sortBy = 'distance';
+            const sortSelect = document.getElementById('sort-select');
+            if (sortSelect) sortSelect.value = 'distance';
             if (locateBtn) {
                 locateBtn.classList.remove('animate-spin');
                 locateBtn.classList.add('bg-emerald-500', 'text-white');
@@ -643,18 +640,17 @@ function triggerGeolocation() {
             const input = document.getElementById('disease-search-input');
             const query = input?.value.trim();
             if (!query) {
-                if (locText) locText.textContent = 'Location found · showing nearest hospitals';
-                void loadNearbyHospitals(appState.userCoords);
+                if (locText) locText.textContent = 'Location found. Enter a condition, then search nearby hospitals.';
                 return;
             }
-            openResultsPage(query, document.getElementById('city-override-input')?.value.trim() || '', appState.userCoords);
+            openResultsPage(query, '', appState.userCoords);
         },
         (err) => {
             console.warn('Geolocation denied:', err.message);
             if (locateBtn) locateBtn.classList.remove('animate-spin');
-            if (locText) locText.textContent = 'GPS unavailable · showing nearby hospitals';
-            void loadNearbyHospitals();
-        }, { enableHighAccuracy: true, timeout: 8000 }
+            const reason = err.code === 1 ? 'Location permission is blocked.' : err.code === 3 ? 'Location request timed out.' : 'Your device could not find a location.';
+            if (locText) locText.textContent = `${reason} Allow location access and try again, or enter a city below.`;
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     );
 }
 
@@ -690,7 +686,9 @@ async function searchPublicHospitalDirectory(query, city, coords) {
         return specialty === 'General Medicine' || departments.includes(specialty.toLowerCase());
     });
     if (!hospitals.length && specialty !== 'General Medicine') hospitals = data.hospitals || [];
-    if (coords && Number.isFinite(Number(coords.lat)) && Number.isFinite(Number(coords.lon ?? coords.lng))) {
+    if (!coords && hospitals.some((hospital) => Number.isFinite(Number(hospital.distanceKm)))) {
+        hospitals.sort((a, b) => Number(a.distanceKm ?? Infinity) - Number(b.distanceKm ?? Infinity));
+    } else if (coords && Number.isFinite(Number(coords.lat)) && Number.isFinite(Number(coords.lon ?? coords.lng))) {
         const distance = (hospital) => {
             const lat = Number(hospital.lat ?? hospital.coordinates?.lat);
             const lon = Number(hospital.lon ?? hospital.lng ?? hospital.coordinates?.lng);
@@ -705,6 +703,18 @@ async function searchPublicHospitalDirectory(query, city, coords) {
     return { hospitals, specialty };
 }
 
+async function resolveCityCenter(city) {
+    if (!city) return null;
+    try {
+        const response = await fetch(`${API_BASE}/api/location/geocode?city=${encodeURIComponent(city)}`, { headers: { Accept: 'application/json' } });
+        const data = await response.json();
+        if (!response.ok || !data.success) return null;
+        return { lat: Number(data.lat), lon: Number(data.lng), approximate: true, city: data.city };
+    } catch {
+        return null;
+    }
+}
+
 async function performDiseaseSearch(query, scrollResults = false) {
     if (!query || !query.trim()) return;
 
@@ -713,6 +723,13 @@ async function performDiseaseSearch(query, scrollResults = false) {
 
     const cityInput = document.getElementById('city-override-input');
     const cityOverride = cityInput?.value.trim() || '';
+    appState.searchCenterCoords = cityOverride ? await resolveCityCenter(cityOverride) : null;
+    if (appState.searchCenterCoords) {
+        appState.detectedLocationName = `${appState.searchCenterCoords.city} city center (approx.)`;
+        appState.sortBy = 'distance';
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) sortSelect.value = 'distance';
+    }
 
     const searchSubmitBtn = document.getElementById('search-submit-btn');
     if (searchSubmitBtn) {
@@ -771,7 +788,7 @@ async function performDiseaseSearch(query, scrollResults = false) {
     } catch (err) {
         console.error('Search error:', err);
         try {
-            const directory = await searchPublicHospitalDirectory(cleanQuery, cityOverride, cityOverride ? null : appState.userCoords);
+            const directory = await searchPublicHospitalDirectory(cleanQuery, cityOverride, cityOverride ? appState.searchCenterCoords : appState.userCoords);
             appState.hospitals = directory.hospitals;
             rememberSavedHospitalRecords(appState.hospitals);
             appState.currentIntent = { disease: cleanQuery, specialty: directory.specialty, urgency: 'Routine', explainability: 'Hospitals are matched using their listed departments and your selected area.' };
@@ -970,7 +987,7 @@ function renderHospitalCards(hospitals) {
               <button type="button" title="${isSaved ? t('removeSaved') : t('save')}" aria-label="${isSaved ? t('removeSaved') : t('save')}" onclick="toggleSavedHospital('${escapeHtml(h.id)}')" class="rounded-xl border px-2.5 py-1 text-xs font-bold ${isSaved ? 'border-rose-300 bg-rose-50 text-rose-600' : 'border-slate-200 text-slate-600'}">${isSaved ? `♥ ${t('saved')}` : `♡ ${t('save')}`}</button>
             <div class="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold text-xs">
               <span>★</span>
-              <span>${escapeHtml(h.rating ?? 'Not rated')}</span>
+              <span>${escapeHtml(h.rating)}</span>
             </div>
             </div>
           </div>
@@ -1072,7 +1089,9 @@ function initOrUpdateMap() {
     mapMarkersGroup.clearLayers();
     const boundsPoints = [];
 
-    const centerCoords = appState.userCoords
+    const centerCoords = appState.searchCenterCoords
+        ? { lat: Number(appState.searchCenterCoords.lat), lon: Number(appState.searchCenterCoords.lon ?? appState.searchCenterCoords.lng) }
+        : appState.userCoords
         ? { lat: Number(appState.userCoords.lat), lon: Number(appState.userCoords.lon ?? appState.userCoords.lng) }
         : null;
     const hasUserCoordinates = Number.isFinite(centerCoords?.lat) && Number.isFinite(centerCoords?.lon);
@@ -1084,7 +1103,7 @@ function initOrUpdateMap() {
             fillColor: '#38bdf8',
             fillOpacity: 0.95,
             weight: 3
-        }).bindPopup(`<strong>📍 Search Center: ${escapeHtml(appState.detectedLocationName)}</strong>`).addTo(resultsMap);
+        }).bindPopup(`<strong>📍 ${appState.searchCenterCoords ? 'Approximate city center' : 'GPS location'}: ${escapeHtml(appState.detectedLocationName)}</strong>`).addTo(resultsMap);
         boundsPoints.push([centerCoords.lat, centerCoords.lon]);
     } else if (userLocationMarker) {
         userLocationMarker.remove();

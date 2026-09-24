@@ -15,6 +15,7 @@
   let activeFilter = params.get('filter') === 'saved' && localStorage.getItem('medigo_auth_token') ? 'saved' : 'all';
   let resultsMap = null;
   let mapMarkers = null;
+  if (lat != null && lng != null && sortSelect) sortSelect.value = 'nearest';
   const readStored = (key, fallback) => { try { const value = JSON.parse(localStorage.getItem(key) || ''); return value ?? fallback; } catch { return fallback; } };
   const requireAccount = () => {
     if (localStorage.getItem('medigo_auth_token')) return true;
@@ -24,6 +25,11 @@
   };
   label.textContent = query ? `You searched: ${query}${city ? ` · ${city}` : ''}` : 'No search entered';
   if (!query) { status.textContent = 'Go back and enter a symptom or condition.'; return; }
+  if (!localStorage.getItem('medigo_auth_token')) {
+    localStorage.setItem('medigo_auth_return_to', location.href);
+    location.href = 'index.html#signin';
+    return;
+  }
 
   const specialtyFor = (value) => {
     const text = value.toLowerCase();
@@ -55,6 +61,10 @@
     }
     mapMarkers.clearLayers();
     const points = [];
+    if (lat != null && lng != null && Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
+      L.circleMarker([Number(lat), Number(lng)], { radius: 8, color: '#0284c7', fillColor: '#38bdf8', fillOpacity: .95, weight: 3 }).bindPopup('Your current location').addTo(mapMarkers);
+      points.push([Number(lat), Number(lng)]);
+    }
     hospitals.forEach(h => {
       const lat = Number(h.lat ?? h.coordinates?.lat);
       const lng = Number(h.lon ?? h.lng ?? h.coordinates?.lng);
@@ -64,7 +74,7 @@
     });
     if (points.length) resultsMap.fitBounds(points, { padding: [24, 24], maxZoom: 13 });
     else resultsMap.setView([22.5, 79], 5);
-    document.getElementById('map-status').textContent = `${points.length} hospitals shown`;
+    document.getElementById('map-status').textContent = `${Math.max(0, points.length - (lat != null && lng != null ? 1 : 0))} hospitals shown`;
     setTimeout(() => resultsMap.invalidateSize(), 50);
   };
   const render = (hospitals, specialty, fallback = false) => {
@@ -153,7 +163,7 @@
   try {
     let data;
     try {
-      const response = await fetch(`${MEDIGO_API_BASE}/api/hospitals/search`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({query, city, lat:lat == null ? undefined : Number(lat), lng:lng == null ? undefined : Number(lng)}), signal:AbortSignal.timeout(25000)});
+      const response = await fetch(`${MEDIGO_API_BASE}/api/hospitals/search`, {method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('medigo_auth_token') || ''}`}, body:JSON.stringify({query, city, lat:lat == null ? undefined : Number(lat), lng:lng == null ? undefined : Number(lng)}), signal:AbortSignal.timeout(25000)});
       data = await response.json();
       if (!response.ok || !data.success) throw new Error('Search service unavailable');
       render(data.hospitals || [], data.intent?.specialty || specialtyFor(query));

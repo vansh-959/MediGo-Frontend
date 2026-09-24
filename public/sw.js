@@ -1,11 +1,12 @@
 /* MediGo offline-first app shell. Bump CACHE_VERSION when changing the shell. */
-const CACHE_VERSION = "medigo-pwa-v19";
+const CACHE_VERSION = "medigo-pwa-v21";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
 const LOCAL_CORE_ASSETS = [
   "./",
   "./index.html",
+  "./auth.html",
   "./results.html",
   "./offline.html",
   "./manifest.json",
@@ -17,6 +18,7 @@ const LOCAL_CORE_ASSETS = [
   "./js/chat.js",
   "./js/report-reader.js",
   "./js/cost-estimator.js",
+  "./js/schemes.js",
   "./js/sos-dispatch.js",
   "./emergency.html",
   "./js/emergency.js",
@@ -121,7 +123,7 @@ async function networkFirstPage(request) {
 }
 
 function isCacheablePage(url) {
-  return ["./", "./index.html", "./results.html", "./emergency.html", "./compare.html", "./offline.html"]
+  return ["./", "./index.html", "./auth.html", "./results.html", "./emergency.html", "./compare.html", "./offline.html"]
     .some((path) => new URL(localUrl(path)).pathname === url.pathname);
 }
 

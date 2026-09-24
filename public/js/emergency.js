@@ -7,6 +7,8 @@
   let hospitals = [];
   let patientLocation = null;
   let showingDirectoryFallback = false;
+  let emergencyMap = null;
+  let emergencyMarkers = null;
   const localEmergencyHospitals = [
     { id: "hosp-chd-1", name: "PGIMER (Post Graduate Institute of Medical Education & Research)", city: "Chandigarh", location: "Sector 12, Chandigarh", emergencyBedsAvailable: 42, icuAvailable: 38, lat: 30.7673, lon: 76.7794, phone: "+91 172 2747585" },
     { id: "hosp-chd-2", name: "Max Super Speciality Hospital", city: "Chandigarh", location: "Phase 6, Mohali", emergencyBedsAvailable: 18, icuAvailable: 16, lat: 30.7258, lon: 76.7088, phone: "+91 172 5212000" },
@@ -43,15 +45,47 @@
     const result = [...hospitals];
     if (patientLocation) {
       result.forEach((hospital) => {
-        const lat = Number(hospital.lat);
-        const lng = Number(hospital.lon);
+        const lat = Number(hospital.lat ?? hospital.coordinates?.lat);
+        const lng = Number(hospital.lon ?? hospital.lng ?? hospital.coordinates?.lng);
         hospital.distanceKm = Number.isFinite(lat) && Number.isFinite(lng)
           ? distanceKm(patientLocation.lat, patientLocation.lng, lat, lng)
           : Number.POSITIVE_INFINITY;
       });
       result.sort((a, b) => a.distanceKm - b.distanceKm);
+    } else {
+      result.sort((a, b) => (Number.isFinite(Number(a.distanceKm)) ? Number(a.distanceKm) : Number.POSITIVE_INFINITY) - (Number.isFinite(Number(b.distanceKm)) ? Number(b.distanceKm) : Number.POSITIVE_INFINITY));
     }
     return result;
+  };
+
+  const renderEmergencyMap = (ordered) => {
+    const mapNode = document.getElementById("emergency-hospital-map");
+    const mapCount = document.getElementById("emergency-map-count");
+    if (!mapNode) return;
+    if (!window.L) { if (mapCount) mapCount.textContent = "Map unavailable"; return; }
+    if (!emergencyMap) {
+      const first = ordered.find((hospital) => Number.isFinite(Number(hospital.lat ?? hospital.coordinates?.lat)) && Number.isFinite(Number(hospital.lon ?? hospital.lng ?? hospital.coordinates?.lng)));
+      emergencyMap = L.map(mapNode).setView(patientLocation ? [patientLocation.lat, patientLocation.lng] : first ? [Number(first.lat ?? first.coordinates.lat), Number(first.lon ?? first.lng ?? first.coordinates.lng)] : [30.7333, 76.7794], 12);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap contributors", maxZoom: 18 }).addTo(emergencyMap);
+      emergencyMarkers = L.layerGroup().addTo(emergencyMap);
+    }
+    emergencyMarkers.clearLayers();
+    const points = [];
+    if (patientLocation) {
+      L.circleMarker([patientLocation.lat, patientLocation.lng], { radius: 8, color: "#0284c7", fillColor: "#38bdf8", fillOpacity: .95, weight: 3 }).bindPopup("Your current location").addTo(emergencyMarkers);
+      points.push([patientLocation.lat, patientLocation.lng]);
+    }
+    ordered.forEach((hospital, index) => {
+      const lat = Number(hospital.lat ?? hospital.coordinates?.lat);
+      const lng = Number(hospital.lon ?? hospital.lng ?? hospital.coordinates?.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      const marker = L.marker([lat, lng]).bindPopup(`<strong>${escapeHtml(patientLocation && index === 0 ? "Nearest listed hospital · " : "")}${escapeHtml(hospital.name)}</strong><br>${escapeHtml(hospital.location || hospital.city || "")}${Number.isFinite(hospital.distanceKm) ? `<br>${hospital.distanceKm.toFixed(1)} km away` : ""}`);
+      marker.addTo(emergencyMarkers); points.push([lat, lng]);
+    });
+    if (points.length > 1) emergencyMap.fitBounds(points, { padding: [24, 24], maxZoom: 14 });
+    else if (points.length === 1) emergencyMap.setView(points[0], 13);
+    if (mapCount) mapCount.textContent = `${points.length - (patientLocation ? 1 : 0)} hospitals plotted`;
+    setTimeout(() => emergencyMap.invalidateSize(), 50);
   };
 
   const renderHospitals = ({ selectNearest = false } = {}) => {
@@ -87,7 +121,7 @@
     updateSelectedHospital();
 
     hospitalList.innerHTML = ordered
-      .map((hospital) => {
+      .map((hospital, index) => {
         const latitude = Number(hospital.lat);
         const longitude = Number(hospital.lon);
         const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
@@ -101,7 +135,7 @@
         return `
           <article class="theme-card rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-sm">
             <div class="min-w-0 flex-1">
-              <span class="text-[9px] uppercase font-black text-rose-500 tracking-wider block">${escapeHtml(showingDirectoryFallback ? t("directoryHospitalFallbackLabel") : t("emergencyUnit"))}</span>
+              <span class="text-[9px] uppercase font-black text-rose-500 tracking-wider block">${patientLocation && index === 0 ? "NEAREST LISTED HOSPITAL · " : ""}${escapeHtml(showingDirectoryFallback ? t("directoryHospitalFallbackLabel") : t("emergencyUnit"))}</span>
               <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">${escapeHtml(hospital.name)}</h4>
               <div class="flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                 <span>${escapeHtml(hospital.location || hospital.city)}${distance}</span>
@@ -116,6 +150,8 @@
           </article>`;
       })
       .join("");
+
+    renderEmergencyMap(ordered);
 
     hospitalList.querySelectorAll("[data-select-hospital]").forEach((button) => {
       button.addEventListener("click", () => {

@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const apiBase = window.MEDIGO_API_BASE;
   const t = (key) => window.medigoText?.(key) || key;
   const formatCurrency = (value) => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+  let userCoordinates = null;
 
   beneficiaryToggle.addEventListener("change", () => {
     schemeWrap.classList.toggle("hidden", !beneficiaryToggle.checked);
@@ -40,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }));
         cityListLoaded = true;
       }
+      const procedureOptions = document.getElementById("cost-procedure-options");
+      if (procedureOptions && Array.isArray(data.procedures)) procedureOptions.replaceChildren(...data.procedures.map((item) => new Option(item.procedureName, item.procedureName)));
       const current = schemeSelect.value;
       schemeSelect.replaceChildren(new Option(t("chooseScheme"), ""));
       (data.schemes || []).forEach((scheme) => schemeSelect.add(new Option(scheme, scheme)));
@@ -64,6 +67,19 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   citySelect.addEventListener("input", scheduleOptions);
   procedureInput.addEventListener("input", scheduleOptions);
+  document.getElementById("cost-use-location")?.addEventListener("click", () => {
+    if (!navigator.geolocation) { status.textContent = "Location is unavailable; enter your city."; return; }
+    status.textContent = "Waiting for location permission…";
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      try {
+        userCoordinates = { lat: coords.latitude, lng: coords.longitude };
+        const params = new URLSearchParams({ lat: String(coords.latitude), lng: String(coords.longitude) });
+        const response = await fetch(`${apiBase}/api/location/resolve?${params}`); const data = await response.json();
+        if (!response.ok || !data.city) throw new Error("Could not determine a city from this location.");
+        citySelect.value = data.city; scheduleOptions(); status.textContent = `Using your location: ${data.city}.`;
+      } catch (error) { status.textContent = `${error.message} Enter your city instead.`; }
+    }, () => { status.textContent = "Location permission was not granted. Enter your city instead."; }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -73,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
       isBeneficiary: beneficiaryToggle.checked,
       scheme: beneficiaryToggle.checked ? schemeSelect.value : null,
       language: window.MEDIGO_LANGUAGE || "en",
+      ...(userCoordinates || {}),
     };
     submit.disabled = true;
     status.textContent = t("preparingEstimate");
@@ -98,8 +115,8 @@ document.addEventListener("DOMContentLoaded", () => {
       lastEstimateData = null;
       lastEstimateFailed = true;
       status.textContent = error.suggestions?.length
-        ? `${t("estimateFailed")} ${error.suggestions.join(", ")}`
-        : t("estimateFailed");
+        ? `${error.message} ${error.suggestions.join(", ")}`
+        : error.message || t("estimateFailed");
       status.className = "mt-2 text-xs font-semibold text-rose-700";
     } finally {
       submit.disabled = false;
@@ -211,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const packageStatus = hospital.schemeAccepted
       ? hospital.procedurePackageListed ? " · Procedure package listed" : " · Confirm procedure package"
       : "";
-    location.textContent = `${hospital.location || hospital.city}${hospital.rating ? ` · ★ ${hospital.rating}` : ""}${packageStatus}`;
+    location.textContent = `${hospital.location || hospital.city}${Number.isFinite(Number(hospital.distanceKm)) ? ` · ${hospital.distanceKm} km` : ""}${hospital.rating ? ` · ★ ${hospital.rating}` : ""}${packageStatus}`;
     info.append(name, location);
     card.append(info);
 

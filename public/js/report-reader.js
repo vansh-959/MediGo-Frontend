@@ -60,6 +60,11 @@ document.addEventListener("DOMContentLoaded", () => {
         params.set("lat", String(coords.lat));
         params.set("lng", String(coords.lng ?? coords.lon));
       }
+      if (!city && !coords) {
+        if (!navigator.geolocation) throw new Error("Enable location or enter a city before reading the report.");
+        const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }));
+        params.set("lat", String(position.coords.latitude)); params.set("lng", String(position.coords.longitude));
+      }
 
       const token = localStorage.getItem("medigo_auth_token");
       const headers = { "Content-Type": selectedFile.type };
