@@ -1,5 +1,5 @@
 /* MediGo offline-first app shell. Bump CACHE_VERSION when changing the shell. */
-const CACHE_VERSION = "medigo-pwa-v21";
+const CACHE_VERSION = "medigo-pwa-v22";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

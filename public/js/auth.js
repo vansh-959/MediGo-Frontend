@@ -17,11 +17,9 @@
     status.textContent = '';
   };
   window.openMediGoAuth = (message, initialMode = 'login') => { modal.classList.remove('hidden'); modal.classList.add('flex'); setMode(initialMode); status.textContent = message || (token() ? 'Please sign in again to continue.' : 'Sign in or create an account to continue.'); window.lucide?.createIcons(); };
-  document.getElementById('account-link')?.addEventListener('click', event => { event.preventDefault(); if (token()) { localStorage.removeItem('medigo_auth_token'); localStorage.removeItem('medigo_user'); location.reload(); } else location.href = 'auth.html?mode=login'; });
   document.getElementById('auth-close').addEventListener('click', () => { if (location.pathname.endsWith('/auth.html')) location.href = 'index.html'; else { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
   modal.addEventListener('click', event => { if (event.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
   document.getElementById('auth-tab-login').addEventListener('click', () => setMode('login')); document.getElementById('auth-tab-signup').addEventListener('click', () => setMode('signup'));
-  document.getElementById('signup-open-btn')?.addEventListener('click', () => { location.href = 'auth.html?mode=signup'; });
   document.getElementById('auth-forgot')?.remove();
   document.getElementById('auth-resend')?.addEventListener('click', () => {
     stage = 'request'; if (form.elements.otp) form.elements.otp.required = false;
@@ -52,10 +50,6 @@
     finally { submit.disabled = false; }
   }
   form.addEventListener('submit', event => { event.preventDefault(); submitAction(); });
-  if (token()) {
-    document.getElementById('account-btn-text')?.replaceChildren(document.createTextNode('Sign out'));
-    document.getElementById('signup-open-btn')?.classList.add('hidden');
-  }
   if (location.pathname.endsWith('/auth.html')) setMode(new URLSearchParams(location.search).get('mode') === 'signup' ? 'signup' : 'login');
   document.addEventListener('submit', event => { if (!token() && ['cost-estimate-form'].includes(event.target.id)) { event.preventDefault(); event.stopImmediatePropagation(); window.openMediGoAuth(); } }, true);
   document.addEventListener('submit', event => { if (!token() && event.target.id === 'disease-search-form') { event.preventDefault(); event.stopImmediatePropagation(); window.openMediGoAuth('Sign in or create an account to search the hospital directory.'); } }, true);
