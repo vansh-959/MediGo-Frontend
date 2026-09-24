@@ -174,21 +174,21 @@ button, a, input, select {
 }
 
 .mobile-emergency-item {
-  min-height: 54px;
+  min-height: 48px;
   border: 2px solid #fff;
   border-radius: 16px;
   background: linear-gradient(145deg, #fb344f, #be123c);
-  box-shadow: 0 0 0 2px rgba(244, 63, 94, .2), 0 5px 14px rgba(190, 18, 60, .4);
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, .2), 0 4px 10px rgba(190, 18, 60, .35);
   color: #fff;
   font-size: 9px;
   font-weight: 900;
   line-height: 1;
   text-decoration: none;
-  transform: translateY(-5px);
+  transform: translateY(-4px);
 }
 
 .mobile-emergency-item:active {
-  transform: translateY(-3px) scale(.97);
+  transform: translateY(-2px) scale(.97);
 }
 
 @media (max-width: 639px) {

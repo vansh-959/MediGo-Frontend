@@ -120,7 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initReviewsModal();
     if (location.hash === '#saved') document.querySelector('.filter-chip[data-filter="saved"]')?.click();
 
-    // Hospital search is started only after the visitor submits a query.
+    // Auto-request current location on page load
+    requestLocationOnLoad();
 });
 
 window.addEventListener('medigo:languagechange', (event) => {
@@ -440,7 +441,7 @@ function initEventListeners() {
 }
 
 function updateMobNavActive(activeId) {
-    const ids = ['mob-nav-discover', 'mob-nav-map', 'mob-nav-cost', 'mob-nav-report-reader', 'mob-nav-more'];
+    const ids = ['mob-nav-discover', 'mob-nav-map', 'mob-nav-cost', 'mob-nav-more'];
     ids.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -672,6 +673,58 @@ function triggerGeolocation() {
             const reason = err.code === 1 ? 'Location permission is blocked.' : err.code === 3 ? 'Location request timed out.' : 'Your device could not find a location.';
             if (locText) locText.textContent = `${reason} Allow location access and try again, or enter a city below.`;
         }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+}
+
+// =========================================================================
+// AUTO-REQUEST LOCATION ON PAGE LOAD
+// =========================================================================
+
+function requestLocationOnLoad() {
+    if (!navigator.geolocation) return;
+    if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(location.hostname)) return;
+
+    const locText = document.getElementById('current-location-text');
+    const locateBtn = document.getElementById('locate-me-btn');
+
+    if (locText) locText.textContent = 'Requesting your location…';
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            appState.userCoords = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            };
+            appState.searchCenterCoords = null;
+
+            // Clear any manually entered city since GPS is available
+            const cityOverride = document.getElementById('city-override-input');
+            if (cityOverride) cityOverride.value = '';
+
+            // Update sort to distance-based
+            appState.sortBy = 'distance';
+            const sortSelect = document.getElementById('sort-select');
+            if (sortSelect) sortSelect.value = 'distance';
+
+            // Visual feedback
+            if (locateBtn) {
+                locateBtn.classList.add('bg-emerald-500', 'text-white');
+            }
+            if (locText) {
+                locText.textContent = `📍 GPS Active (${position.coords.latitude.toFixed(3)}, ${position.coords.longitude.toFixed(3)})`;
+            }
+
+            showNotificationToast('Location detected', 'Your GPS location is active. Search results will show nearest hospitals first.', 'success');
+        },
+        (err) => {
+            console.warn('Auto-location request denied or failed:', err.message);
+            if (locText) {
+                locText.textContent = err.code === 1
+                    ? 'Allow location access for nearest hospitals, or enter a city below'
+                    : 'Could not detect location. Enter a city below for nearby hospitals';
+            }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
 }
 

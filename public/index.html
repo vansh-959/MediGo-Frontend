@@ -668,14 +668,14 @@
 
     <div id="mobile-more-menu" class="fixed right-2 z-[60] hidden w-48 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:hidden" style="bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px))">
       <button type="button" id="mob-nav-compare" class="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-sm font-bold text-slate-700 dark:text-slate-200"><i data-lucide="sliders-horizontal" class="h-4 w-4 text-indigo-500"></i>Compare hospitals<span id="mob-compare-count" class="ml-auto rounded-full bg-sky-600 px-1.5 text-[10px] font-black text-white hidden">0</span></button>
+      <button type="button" id="mob-nav-report-reader" class="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-sm font-bold text-slate-700 dark:text-slate-200"><i data-lucide="file-heart" class="h-4 w-4 text-emerald-500"></i>Report reader</button>
       <button type="button" id="mob-nav-chat" class="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-sm font-bold text-slate-700 dark:text-slate-200"><i data-lucide="bot" class="h-4 w-4 text-indigo-500"></i>Ask MediGo AI</button>
     </div>
-    <nav class="mobile-bottom-nav grid grid-cols-6 items-center gap-1 px-1 py-1 sm:hidden" aria-label="Main mobile menu">
+    <nav class="mobile-bottom-nav grid grid-cols-5 items-center gap-0 px-1 py-1 sm:hidden" aria-label="Main mobile menu">
       <button type="button" id="mob-nav-discover" class="mobile-nav-item active flex flex-col items-center justify-center gap-0.5 text-sky-700 dark:text-sky-300" aria-label="Home"><i data-lucide="compass" class="h-4 w-4"></i><span>Home</span></button>
-      <a href="emergency.html" id="mob-nav-emergency" class="mobile-emergency-item flex flex-col items-center justify-center gap-0.5" aria-label="Emergency: call 108 or 112"><i data-lucide="siren" class="h-5 w-5"></i><span>Emergency</span></a>
       <button type="button" id="mob-nav-map" class="mobile-nav-item flex flex-col items-center justify-center gap-0.5" aria-label="Hospitals near me"><i data-lucide="map-pin" class="h-4 w-4"></i><span>Nearby</span></button>
+      <a href="emergency.html" id="mob-nav-emergency" class="mobile-emergency-item flex flex-col items-center justify-center gap-0.5" aria-label="Emergency: call 108 or 112"><i data-lucide="siren" class="h-5 w-5"></i><span>SOS</span></a>
       <button type="button" id="mob-nav-cost" class="mobile-nav-item flex flex-col items-center justify-center gap-0.5" aria-label="Treatment cost estimator"><i data-lucide="wallet" class="h-4 w-4"></i><span>Costs</span></button>
-      <button type="button" id="mob-nav-report-reader" class="mobile-nav-item flex flex-col items-center justify-center gap-0.5" aria-label="Smart medical report reader"><i data-lucide="file-heart" class="h-4 w-4"></i><span>Reports</span></button>
       <button type="button" id="mob-nav-more" class="mobile-nav-item flex flex-col items-center justify-center gap-0.5" aria-expanded="false" aria-controls="mobile-more-menu"><i data-lucide="menu" class="h-4 w-4"></i><span>More</span></button>
     </nav>
 
