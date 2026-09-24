@@ -1,5 +1,5 @@
 {
   "appId": "com.medigo.app",
   "appName": "MediGo",
-  "webDir": "Public"
+  "webDir": "public"
 }

@@ -200,17 +200,34 @@ button, a, input, select {
 
   #schemes-city {
     order: -1;
-    flex: 1 0 100%;
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  [aria-label="More health tools"] article:first-child .mt-3.flex {
+    flex-wrap: wrap;
   }
 
   #schemes-locate,
   #schemes-search {
-    flex: 1 1 0;
+    flex: 0 0 calc(50% - 4px);
+    min-width: 0;
     min-height: 44px;
   }
 
-  #schemes-locate + #schemes-city {
-    flex-basis: 100%;
+  .auth-page > main > section {
+    min-width: 0;
+  }
+
+  .auth-page #auth-form,
+  .auth-page #auth-form > div,
+  .auth-page #auth-form input {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 

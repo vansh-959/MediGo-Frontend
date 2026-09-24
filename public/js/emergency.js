@@ -107,10 +107,7 @@
         .map(
           (hospital) => {
             const distance = Number.isFinite(hospital.distanceKm) ? ` · ${hospital.distanceKm.toFixed(1)} km` : "";
-            const capacity = hospital.source === "OpenStreetMap"
-              ? t("availabilityUnconfirmed")
-              : `${Number(hospital.emergencyBedsAvailable) || 0} ${t("emergencyBeds")}`;
-            return `<option value="${escapeHtml(hospital.id)}">${escapeHtml(hospital.name)} (${escapeHtml(hospital.city)} · ${escapeHtml(capacity)}${distance})</option>`;
+            return `<option value="${escapeHtml(hospital.id)}">${escapeHtml(hospital.name)} (${escapeHtml(hospital.city)} · ${escapeHtml(t("availabilityUnconfirmed"))}${distance})</option>`;
           },
         )
         .join("");
@@ -139,7 +136,7 @@
               <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">${escapeHtml(hospital.name)}</h4>
               <div class="flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                 <span>${escapeHtml(hospital.location || hospital.city)}${distance}</span>
-              <span class="text-emerald-500 font-bold">${hospital.source === "OpenStreetMap" ? escapeHtml(t("availabilityUnconfirmed")) : `${Number(hospital.emergencyBedsAvailable) || 0} ${escapeHtml(t("emergencyBeds"))} · ${Number(hospital.icuAvailable) || 0} ${escapeHtml(t("icuBedsLabel"))}`}</span>
+              <span class="text-amber-600 dark:text-amber-400 font-bold">${escapeHtml(t("availabilityUnconfirmed"))}</span>
               </div>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
@@ -171,9 +168,7 @@
       return;
     }
     info.classList.remove("hidden");
-    document.getElementById("hospital-beds-preview").textContent = hospital.source === "OpenStreetMap"
-      ? t("availabilityUnconfirmed")
-      : `${t("emergencyBeds")}: ${Number(hospital.emergencyBedsAvailable) || 0} · ${t("icuBedsLabel")}: ${Number(hospital.icuAvailable) || 0} ${t("available")}`;
+    document.getElementById("hospital-beds-preview").textContent = t("availabilityUnconfirmed");
     const callLink = document.getElementById("hospital-call-direct");
     const phone = String(hospital.phone ?? "").replace(/[^+\d]/g, "");
     callLink.href = phone ? `tel:${phone}` : "#";
